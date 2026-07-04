@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kingdom — Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lavender: #EAD9FF;
+    --lavender-deep: #C9A6FF;
+    --mint: #C7F5DE;
+    --mint-deep: #8FE0B8;
+    --peach: #FFD9BE;
+    --peach-deep: #FFB98A;
+    --sky: #C3E7FF;
+    --sky-deep: #8FCCF5;
+    --plum: #4A3B63;
+    --plum-soft: #7A6B94;
+    --cream: #F6F0FC;
+    --white: #FFFFFF;
+    --green-online: #5FCB8A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--plum); min-height: 100vh; }
+  h1, h2, h3, .brand { font-family: 'Fredoka', sans-serif; }
+
+  .bg-blob { position: fixed; border-radius: 50%; z-index: 0; opacity: 0.5; }
+  .bg-blob.b1 { width: 340px; height: 340px; background: var(--lavender); top: -110px; left: -90px; }
+  .bg-blob.b2 { width: 260px; height: 260px; background: var(--mint); bottom: -90px; right: -70px; }
+
+  nav {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 48px; max-width: 1300px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 600; }
+  .brand-crown { width: 30px; height: 30px; }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a { text-decoration: none; color: var(--plum-soft); font-weight: 700; font-size: 15px; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--plum); }
+
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(160deg, var(--lavender), var(--sky));
+    border: 3px solid var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(74,59,99,0.12);
+    /* PLACEHOLDER: replace inner content with <img src="my-avatar.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
+  }
+
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 3px solid var(--sky-deep); outline-offset: 2px;
+  }
+
+  /* ---------- layout ---------- */
+  .home-layout {
+    position: relative; z-index: 5; max-width: 1300px; margin: 0 auto;
+    padding: 12px 48px 100px;
+    display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 24px;
+    align-items: start;
+  }
+
+  .panel {
+    background: var(--white); border-radius: 24px; padding: 24px;
+    box-shadow: 0 10px 24px rgba(74,59,99,0.06);
+  }
+  .panel h2 { font-size: 17px; font-weight: 700; font-family: 'Nunito', sans-serif; margin-bottom: 16px; }
+
+  /* ---------- profile card ---------- */
+  .profile-card {
+    background: linear-gradient(160deg, var(--lavender), var(--sky));
+    border-radius: 24px; padding: 28px 24px; text-align: center;
+  }
+  .profile-pic {
+    width: 96px; height: 96px; border-radius: 50%; margin: 0 auto 14px;
+    background: var(--white); border: 4px solid var(--white);
+    display: flex; align-items: center; justify-content: center; font-size: 36px;
+    box-shadow: 0 8px 20px rgba(74,59,99,0.15);
+    /* PLACEHOLDER: replace inner content with
+       <img src="my-avatar.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
+  }
+  .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
+  .profile-handle { font-size: 13px; color: var(--plum); opacity: 0.7; font-weight: 700; margin-bottom: 16px; }
+
+  .profile-stats { display: flex; justify-content: center; gap: 22px; margin-bottom: 18px; }
+  .profile-stats div { display: flex; flex-direction: column; }
+  .profile-stats strong { font-family: 'Fredoka', sans-serif; font-size: 18px; }
+  .profile-stats span { font-size: 11px; color: var(--plum); opacity: 0.7; font-weight: 800; }
+
+  .btn-edit {
+    background: var(--white); color: var(--plum); border: none; padding: 10px 20px;
+    border-radius: 999px; font-weight: 800; font-size: 13px; cursor: pointer;
+    box-shadow: 0 4px 10px rgba(74,59,99,0.1);
+  }
+
+  .kingdom-card { margin-top: 18px; }
+  .kingdom-card .thumb {
+    width: 100%; aspect-ratio: 16/9; border-radius: 14px; margin-bottom: 10px;
+    border: 3px dashed var(--lavender-deep);
+    background: repeating-linear-gradient(135deg, var(--lavender) 0 14px, var(--sky) 14px 28px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: var(--plum); text-align: center; padding: 8px;
+    /* PLACEHOLDER: replace with <img src="my-kingdom.png" style="width:100%;height:100%;object-fit:cover;border-radius:14px;"> */
+  }
+  .kingdom-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .kingdom-card p { font-size: 12px; color: var(--plum-soft); font-weight: 700; }
+
+  /* ---------- feed ---------- */
+  .feed-item {
+    display: flex; gap: 14px; padding: 14px 0;
+    border-bottom: 1px solid #F0EAF8;
+  }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    background: var(--peach); display: flex; align-items: center; justify-content: center; font-size: 18px;
+    /* PLACEHOLDER: friend/activity avatar image goes here */
+  }
+  .feed-text { font-size: 14px; line-height: 1.5; }
+  .feed-text strong { font-weight: 800; }
+  .feed-time { font-size: 12px; color: var(--plum-soft); font-weight: 700; margin-top: 2px; }
+
+  .quick-actions { display: flex; gap: 10px; margin-bottom: 20px; }
+  .quick-btn {
+    flex: 1; background: var(--cream); border: none; padding: 14px 10px; border-radius: 16px;
+    font-weight: 800; font-size: 13px; cursor: pointer; color: var(--plum);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .quick-btn:hover { background: var(--lavender); transform: translateY(-2px); }
+  .quick-btn .icon { font-size: 20px; }
+
+  /* ---------- friends list ---------- */
+  .friends-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .friends-tab {
+    flex: 1; text-align: center; background: var(--cream); border: none; padding: 9px 0;
+    border-radius: 999px; font-weight: 800; font-size: 12px; color: var(--plum-soft); cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .friends-tab.active { background: var(--plum); color: var(--cream); }
+
+  .friend-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0;
+  }
+  .friend-avatar {
+    width: 40px; height: 40px; border-radius: 50%; position: relative; flex-shrink: 0;
+    background: var(--sky); display: flex; align-items: center; justify-content: center; font-size: 16px;
+    /* PLACEHOLDER: replace inner content with <img src="friend.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
+  }
+  .status-dot {
+    width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--white);
+    position: absolute; bottom: -1px; right: -1px;
+  }
+  .status-dot.online { background: var(--green-online); }
+  .status-dot.offline { background: #D9D2E3; }
+
+  .friend-info { flex: 1; min-width: 0; }
+  .friend-name { font-size: 14px; font-weight: 700; }
+  .friend-status { font-size: 12px; color: var(--plum-soft); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .friend-action {
+    background: var(--mint); border: none; width: 32px; height: 32px; border-radius: 50%;
+    font-size: 13px; cursor: pointer; flex-shrink: 0;
+  }
+
+  .add-friend-btn {
+    width: 100%; margin-top: 16px; background: var(--white); border: 2px dashed var(--lavender-deep);
+    color: var(--plum-soft); padding: 12px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer;
+  }
+  .add-friend-btn:hover { border-color: var(--peach-deep); color: var(--plum); }
+
+  /* ---------- friend requests & search results ---------- */
+  .request-row, .result-row {
+    display: flex; align-items: center; gap: 10px; padding: 8px 0;
+  }
+  .request-row .who, .result-row .who { flex: 1; font-size: 13px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .req-avatar, .result-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: var(--sky); display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .btn-accept {
+    background: var(--mint-deep); color: var(--plum); border: none; padding: 7px 12px;
+    border-radius: 999px; font-weight: 800; font-size: 12px; cursor: pointer;
+  }
+  .btn-decline {
+    background: var(--cream); color: var(--plum-soft); border: none; padding: 7px 12px;
+    border-radius: 999px; font-weight: 800; font-size: 12px; cursor: pointer;
+  }
+  .btn-send-request {
+    background: var(--lavender-deep); color: var(--white); border: none; padding: 7px 14px;
+    border-radius: 999px; font-weight: 800; font-size: 12px; cursor: pointer;
+  }
+  .btn-remove-friend {
+    background: none; border: none; color: var(--plum-soft); font-size: 16px; cursor: pointer; flex-shrink: 0;
+  }
+  .no-results { font-size: 13px; color: var(--plum-soft); font-weight: 700; text-align: center; padding: 10px 0; }
+
+  @media (max-width: 1050px) {
+    .home-layout { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    nav, .home-layout { padding-left: 24px; padding-right: 24px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+
+<nav>
+  <div class="brand">
+    <svg class="brand-crown" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 28 L4 14 L12 20 L20 8 L28 20 L36 14 L34 28 Z" fill="#FFB98A" stroke="#4A3B63" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="5" y="28" width="30" height="5" rx="2" fill="#FFB98A" stroke="#4A3B63" stroke-width="2"/>
+    </svg>
+    Kingdom
+  </div>
+  <ul class="nav-links">
+    <li><a href="#" class="active">Home</a></li>
+    <li><a href="#">Explore</a></li>
+    <li><a href="#">Create</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-avatar" id="navAvatar">🙂</div>
+    <button class="nav-cta" id="logoutBtn" style="background:var(--white); color:var(--plum); box-shadow:0 4px 10px rgba(74,59,99,0.1);">Log out</button>
+  </div>
+</nav>
+
+<div class="home-layout">
+
+  <!-- ---------- left: profile ---------- -->
+  <div>
+    <div class="profile-card">
+      <div class="profile-pic">🙂</div>
+      <div class="profile-name" id="profileName">Moss Ruler</div>
+      <div class="profile-handle" id="profileHandle">@moss_ruler</div>
+      <div class="profile-stats">
+        <div><strong>0</strong><span>Kingdoms</span></div>
+        <div><strong id="friendCount">0</strong><span>Friends</span></div>
+        <div><strong>0</strong><span>Visits</span></div>
+      </div>
+      <button class="btn-edit">Edit profile</button>
+    </div>
+
+    <div class="panel kingdom-card">
+      <h2>Your kingdom</h2>
+      <div class="thumb">🏰<br>No kingdom yet</div>
+      <h3>You haven't built one yet</h3>
+      <p><span style="color:var(--peach-deep); font-weight:800;">Start building →</span></p>
+    </div>
+  </div>
+
+  <!-- ---------- middle: feed ---------- -->
+  <div class="panel">
+    <h2>What's happening</h2>
+    <div class="quick-actions">
+      <button class="quick-btn"><span class="icon">🏰</span>Visit kingdom</button>
+      <button class="quick-btn"><span class="icon">🧑‍🎨</span>Edit character</button>
+      <button class="quick-btn"><span class="icon">🧭</span>Explore realms</button>
+    </div>
+
+    <div style="text-align:center; padding:40px 10px; color:var(--plum-soft);">
+      <div style="font-size:38px; margin-bottom:10px;">🌱</div>
+      <div style="font-weight:800; margin-bottom:4px;">Nothing here yet</div>
+      <div style="font-size:13px;">Add some friends or visit a realm — activity will start showing up here.</div>
+    </div>
+  </div>
+
+  <!-- ---------- right: friends ---------- -->
+  <div class="panel">
+    <h2>Friends</h2>
+
+    <div id="incomingRequestsBox" style="display:none; margin-bottom:18px;">
+      <div style="font-size:12px; font-weight:800; color:var(--plum-soft); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.03em;">Friend requests</div>
+      <div id="incomingRequestsList"></div>
+    </div>
+
+    <div id="friendsListBox">
+      <div id="friendsEmptyState" style="text-align:center; padding:30px 10px; color:var(--plum-soft);">
+        <div style="font-size:34px; margin-bottom:10px;">👋</div>
+        <div style="font-weight:800; margin-bottom:4px; color:var(--plum);">No friends yet</div>
+        <div style="font-size:13px;">Search for someone below to add them.</div>
+      </div>
+      <div id="friendsList"></div>
+    </div>
+
+    <button class="add-friend-btn" id="addFriendToggle">+ Add friend</button>
+
+    <div id="addFriendPanel" style="display:none; margin-top:14px;">
+      <input type="text" id="friendSearchInput" placeholder="Search by username..."
+             style="width:100%; padding:11px 14px; border-radius:12px; border:2px solid #F0EAF8; background:var(--cream); font-family:'Nunito',sans-serif; font-size:14px; color:var(--plum); margin-bottom:10px;">
+      <div id="friendSearchResults"></div>
+      <div id="friendSearchHint" style="font-size:12px; color:var(--plum-soft); font-weight:700; text-align:center; padding:8px 0;">
+        Tip: this only finds accounts created in this same browser.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="kingdom-auth.js"></script>
+<script src="kingdom-friends.js"></script>
+<script>
+  // Require login to view this page — redirects to the landing page if not logged in
+  const currentUser = KingdomAuth.requireAuth('kingdom-landing.html');
+
+  if (currentUser) {
+    document.getElementById('profileName').textContent = currentUser.displayName;
+    document.getElementById('profileHandle').textContent = '@' + currentUser.username;
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    KingdomAuth.logOut();
+    window.location.href = 'kingdom-landing.html';
+  });
+
+  // ---------- friends: render ----------
+  function renderFriends() {
+    if (!currentUser) return;
+    const me = currentUser.username;
+
+    // Incoming requests
+    const incoming = KingdomFriends.getIncomingRequests(me);
+    const incomingBox = document.getElementById('incomingRequestsBox');
+    const incomingList = document.getElementById('incomingRequestsList');
+    incomingList.innerHTML = '';
+    if (incoming.length > 0) {
+      incomingBox.style.display = 'block';
+      incoming.forEach(req => {
+        const row = document.createElement('div');
+        row.className = 'request-row';
+        row.innerHTML = `
+          <div class="req-avatar">🙂</div>
+          <div class="who">${escapeHtml(req.displayName)}</div>
+          <button class="btn-accept">Accept</button>
+          <button class="btn-decline">Decline</button>
+        `;
+        row.querySelector('.btn-accept').addEventListener('click', () => {
+          KingdomFriends.acceptRequest(me, req.from);
+          renderFriends();
+        });
+        row.querySelector('.btn-decline').addEventListener('click', () => {
+          KingdomFriends.declineRequest(me, req.from);
+          renderFriends();
+        });
+        incomingList.appendChild(row);
+      });
+    } else {
+      incomingBox.style.display = 'none';
+    }
+
+    // Friends list
+    const friends = KingdomFriends.getFriends(me);
+    document.getElementById('friendCount').textContent = friends.length;
+    const emptyState = document.getElementById('friendsEmptyState');
+    const listEl = document.getElementById('friendsList');
+    listEl.innerHTML = '';
+
+    if (friends.length === 0) {
+      emptyState.style.display = 'block';
+    } else {
+      emptyState.style.display = 'none';
+      friends.forEach(friend => {
+        const row = document.createElement('div');
+        row.className = 'friend-row';
+        row.innerHTML = `
+          <div class="friend-avatar">🙂<span class="status-dot offline"></span></div>
+          <div class="friend-info">
+            <div class="friend-name">${escapeHtml(friend.displayName)}</div>
+            <div class="friend-status">@${escapeHtml(friend.username)}</div>
+          </div>
+          <button class="btn-remove-friend" title="Remove friend">✕</button>
+        `;
+        row.querySelector('.btn-remove-friend').addEventListener('click', () => {
+          KingdomFriends.removeFriend(me, friend.username);
+          renderFriends();
+        });
+        listEl.appendChild(row);
+      });
+    }
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------- friends: add-friend search panel ----------
+  const addFriendToggle = document.getElementById('addFriendToggle');
+  const addFriendPanel = document.getElementById('addFriendPanel');
+  const friendSearchInput = document.getElementById('friendSearchInput');
+  const friendSearchResults = document.getElementById('friendSearchResults');
+
+  addFriendToggle.addEventListener('click', () => {
+    const isOpen = addFriendPanel.style.display === 'block';
+    addFriendPanel.style.display = isOpen ? 'none' : 'block';
+    addFriendToggle.textContent = isOpen ? '+ Add friend' : '– Close search';
+    if (!isOpen) friendSearchInput.focus();
+  });
+
+  friendSearchInput.addEventListener('input', () => {
+    const query = friendSearchInput.value;
+    friendSearchResults.innerHTML = '';
+    if (!query.trim()) return;
+
+    const results = KingdomFriends.searchUsers(query, currentUser.username);
+    if (results.length === 0) {
+      friendSearchResults.innerHTML = '<div class="no-results">No matching users found.</div>';
+      return;
+    }
+
+    results.forEach(result => {
+      const row = document.createElement('div');
+      row.className = 'result-row';
+      row.innerHTML = `
+        <div class="result-avatar">🙂</div>
+        <div class="who">${escapeHtml(result.displayName)}</div>
+        <button class="btn-send-request">Add</button>
+      `;
+      row.querySelector('.btn-send-request').addEventListener('click', () => {
+        const res = KingdomFriends.sendRequest(currentUser.username, result.username);
+        if (res.ok) {
+          row.querySelector('.btn-send-request').textContent = 'Sent ✓';
+          row.querySelector('.btn-send-request').disabled = true;
+          renderFriends();
+        }
+      });
+      friendSearchResults.appendChild(row);
+    });
+  });
+
+  renderFriends();
+</script>
+
+</body>
+</html>
