@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kingdom — Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lavender: #EAD9FF;
+    --lavender-deep: #C9A6FF;
+    --mint: #C7F5DE;
+    --mint-deep: #8FE0B8;
+    --peach: #FFD9BE;
+    --peach-deep: #FFB98A;
+    --sky: #C3E7FF;
+    --sky-deep: #8FCCF5;
+    --plum: #4A3B63;
+    --plum-soft: #7A6B94;
+    --cream: #F6F0FC;
+    --white: #FFFFFF;
+    --green-online: #5FCB8A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--plum); min-height: 100vh; }
+  h1, h2, h3, .brand { font-family: 'Fredoka', sans-serif; }
+
+  .bg-blob { position: fixed; border-radius: 50%; z-index: 0; opacity: 0.5; }
+  .bg-blob.b1 { width: 340px; height: 340px; background: var(--lavender); top: -110px; left: -90px; }
+  .bg-blob.b2 { width: 260px; height: 260px; background: var(--mint); bottom: -90px; right: -70px; }
+
+  nav {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 48px; max-width: 1300px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 600; }
+  .brand-crown { width: 30px; height: 30px; }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a { text-decoration: none; color: var(--plum-soft); font-weight: 700; font-size: 15px; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--plum); }
+
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(160deg, var(--lavender), var(--sky));
+    border: 3px solid var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(74,59,99,0.12);
+    /* PLACEHOLDER: replace inner content with <img src="my-avatar.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
+  }
+
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 3px solid var(--sky-deep); outline-offset: 2px;
+  }
+
+  /* ---------- layout ---------- */
+  .home-layout {
+    position: relative; z-index: 5; max-width: 1300px; margin: 0 auto;
+    padding: 12px 48px 100px;
+    display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 24px;
+    align-items: start;
+  }
+
+  .panel {
+    background: var(--white); border-radius: 24px; padding: 24px;
+    box-shadow: 0 10px 24px rgba(74,59,99,0.06);
+  }
+  .panel h2 { font-size: 17px; font-weight: 700; font-family: 'Nunito', sans-serif; margin-bottom: 16px; }
+
+  /* ---------- profile card ---------- */
+  .profile-card {
+    background: linear-gradient(160deg, var(--lavender), var(--sky));
+    border-radius: 24px; padding: 28px 24px; text-align: center;
+  }
+  .profile-pic {
+    width: 96px; height: 96px; border-radius: 50%; margin: 0 auto 14px;
+    background: var(--white); border: 4px solid var(--white);
+    display: flex; align-items: center; justify-content: center; font-size: 36px;
+    box-shadow: 0 8px 20px rgba(74,59,99,0.15);
+    /* PLACEHOLDER: replace inner content with
+       <img src="my-avatar.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
+  }
+  .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
+  .profile-handle { font-size: 13px; color: var(--plum); opacity: 0.7; font-weight: 700; margin-bottom: 16px; }
+
+  .profile-stats { display: flex; justify-content: center; gap: 22px; margin-bottom: 18px; }
+  .profile-stats div { display: flex; flex-direction: column; }
+  .profile-stats strong { font-family: 'Fredoka', sans-serif; font-size: 18px; }
+  .profile-stats span { font-size: 11px; color: var(--plum); opacity: 0.7; font-weight: 800; }
+
+  .btn-edit {
+    background: var(--white); color: var(--plum); border: none; padding: 10px 20px;
+    border-radius: 999px; font-weight: 800; font-size: 13px; cursor: pointer;
+    box-shadow: 0 4px 10px rgba(74,59,99,0.1);
+  }
+
+  .kingdom-card { margin-top: 18px; }
+  .kingdom-card .thumb {
+    width: 100%; aspect-ratio: 16/9; border-radius: 14px; margin-bottom: 10px;
+    border: 3px dashed var(--lavender-deep);
+    background: repeating-linear-gradient(135deg, var(--lavender) 0 14px, var(--sky) 14px 28px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: var(--plum); text-align: center; padding: 8px;
+    /* PLACEHOLDER: replace with <img src="my-kingdom.png" style="width:100%;height:100%;object-fit:cover;border-radius:14px;"> */
+  }
+  .kingdom-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .kingdom-card p { font-size: 12px; color: var(--plum-soft); font-weight: 700; }
+
+  /* ---------- feed ---------- */
+  .feed-item {
+    display: flex; gap: 14px; padding: 14px 0;
+    border-bottom: 1px solid #F0EAF8;
+  }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-avatar {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    background: var(--peach); display: flex; align-items: center; justify-content: center; font-size: 18px;
+    /* PLACEHOLDER: friend/activity avatar image goes here */
+  }
+  .feed-text { font-size: 14px; line-height: 1.5; }
+  .feed-text strong { font-weight: 800; }
+  .feed-time { font-size: 12px; color: var(--plum-soft); font-weight: 700; margin-top: 2px; }
+
+  .quick-actions { display: flex; gap: 10px; margin-bottom: 20px; }
+  .quick-btn {
+    flex: 1; background: var(--cream); border: none; padding: 14px 10px; border-radius: 16px;
+    font-weight: 800; font-size: 13px; cursor: pointer; color: var(--plum);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .quick-btn:hover { background: var(--lavender); transform: translateY(-2px); }
+  .quick-btn .icon { font-size: 20px; }
+
+  /* ---------- friends list ---------- */
+  .friends-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .friends-tab {
+    flex: 1; text-align: center; background: var(--cream); border: none; padding: 9px 0;
+    border-radius: 999px; font-weight: 800; font-size: 12px; color: var(--plum-soft); cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .friends-tab.active { background: var(--plum); color: var(--cream); }
+
+  .friend-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0;
+  }
+  .friend-avatar {
+    width: 40px; height: 40px; border-radius: 50%; position: relative; flex-shrink: 0;
+    background: var(--sky); display: flex; align-items: center; justify-content: center; font-size: 16px;
+    /* PLACEHOLDER: replace inner content with <img src="friend.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
+  }
+  .status-dot {
+    width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--white);
+    position: absolute; bottom: -1px; right: -1px;
+  }
+  .status-dot.online { background: var(--green-online); }
+  .status-dot.offline { background: #D9D2E3; }
+
+  .friend-info { flex: 1; min-width: 0; }
+  .friend-name { font-size: 14px; font-weight: 700; }
+  .friend-status { font-size: 12px; color: var(--plum-soft); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .friend-action {
+    background: var(--mint); border: none; width: 32px; height: 32px; border-radius: 50%;
+    font-size: 13px; cursor: pointer; flex-shrink: 0;
+  }
+
+  .add-friend-btn {
+    width: 100%; margin-top: 16px; background: var(--white); border: 2px dashed var(--lavender-deep);
+    color: var(--plum-soft); padding: 12px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer;
+  }
+  .add-friend-btn:hover { border-color: var(--peach-deep); color: var(--plum); }
+
+  /* ---------- friend requests & search results ---------- */
+  .request-row, .result-row {
+    display: flex; align-items: center; gap: 10px; padding: 8px 0;
+  }
+  .request-row .who, .result-row .who { flex: 1; font-size: 13px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .req-avatar, .result-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: var(--sky); display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .btn-accept {
+    background: var(--mint-deep); color: var(--plum); border: none; padding: 7px 12px;
+    border-radius: 999px; font-weight: 800; font-size: 12px; cursor: pointer;
+  }
+  .btn-decline {
+    background: var(--cream); color: var(--plum-soft); border: none; padding: 7px 12px;
+    border-radius: 999px; font-weight: 800; font-size: 12px; cursor: pointer;
+  }
+  .btn-send-request {
+    background: var(--lavender-deep); color: var(--white); border: none; padding: 7px 14px;
+    border-radius: 999px; font-weight: 800; font-size: 12px; cursor: pointer;
+  }
+  .btn-remove-friend {
+    background: none; border: none; color: var(--plum-soft); font-size: 16px; cursor: pointer; flex-shrink: 0;
+  }
+  .no-results { font-size: 13px; color: var(--plum-soft); font-weight: 700; text-align: center; padding: 10px 0; }
+
+  @media (max-width: 1050px) {
+    .home-layout { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    nav, .home-layout { padding-left: 24px; padding-right: 24px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+
+<nav>
+  <div class="brand">
+    <svg class="brand-crown" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 28 L4 14 L12 20 L20 8 L28 20 L36 14 L34 28 Z" fill="#FFB98A" stroke="#4A3B63" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="5" y="28" width="30" height="5" rx="2" fill="#FFB98A" stroke="#4A3B63" stroke-width="2"/>
+    </svg>
+    Kingdom
+  </div>
+  <ul class="nav-links">
+    <li><a href="#" class="active">Home</a></li>
+    <li><a href="#">Explore</a></li>
+    <li><a href="#">Create</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-avatar" id="navAvatar">🙂</div>
+    <button class="nav-cta" id="logoutBtn" style="background:var(--white); color:var(--plum); box-shadow:0 4px 10px rgba(74,59,99,0.1);">Log out</button>
+  </div>
+</nav>
+
+<div class="home-layout">
+
+  <!-- ---------- left: profile ---------- -->
+  <div>
+    <div class="profile-card">
+      <div class="profile-pic">🙂</div>
+      <div class="profile-name" id="profileName">Moss Ruler</div>
+      <div class="profile-handle" id="profileHandle">@moss_ruler</div>
+      <div class="profile-stats">
+        <div><strong>0</strong><span>Kingdoms</span></div>
+        <div><strong id="friendCount">0</strong><span>Friends</span></div>
+        <div><strong>0</strong><span>Visits</span></div>
+      </div>
+      <button class="btn-edit">Edit profile</button>
+    </div>
+
+    <div class="panel kingdom-card">
+      <h2>Your kingdom</h2>
+      <div class="thumb">🏰<br>No kingdom yet</div>
+      <h3>You haven't built one yet</h3>
+      <p><span style="color:var(--peach-deep); font-weight:800;">Start building →</span></p>
+    </div>
+  </div>
+
+  <!-- ---------- middle: feed ---------- -->
+  <div class="panel">
+    <h2>What's happening</h2>
+    <div class="quick-actions">
+      <button class="quick-btn"><span class="icon">🏰</span>Visit kingdom</button>
+      <button class="quick-btn"><span class="icon">🧑‍🎨</span>Edit character</button>
+      <button class="quick-btn"><span class="icon">🧭</span>Explore realms</button>
+    </div>
+
+    <div style="text-align:center; padding:40px 10px; color:var(--plum-soft);">
+      <div style="font-size:38px; margin-bottom:10px;">🌱</div>
+      <div style="font-weight:800; margin-bottom:4px;">Nothing here yet</div>
+      <div style="font-size:13px;">Add some friends or visit a realm — activity will start showing up here.</div>
+    </div>
+  </div>
+
+  <!-- ---------- right: friends ---------- -->
+  <div class="panel">
+    <h2>Friends</h2>
+
+    <div id="incomingRequestsBox" style="display:none; margin-bottom:18px;">
+      <div style="font-size:12px; font-weight:800; color:var(--plum-soft); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.03em;">Friend requests</div>
+      <div id="incomingRequestsList"></div>
+    </div>
+
+    <div id="friendsListBox">
+      <div id="friendsEmptyState" style="text-align:center; padding:30px 10px; color:var(--plum-soft);">
+        <div style="font-size:34px; margin-bottom:10px;">👋</div>
+        <div style="font-weight:800; margin-bottom:4px; color:var(--plum);">No friends yet</div>
+        <div style="font-size:13px;">Search for someone below to add them.</div>
+      </div>
+      <div id="friendsList"></div>
+    </div>
+
+    <button class="add-friend-btn" id="addFriendToggle">+ Add friend</button>
+
+    <div id="addFriendPanel" style="display:none; margin-top:14px;">
+      <input type="text" id="friendSearchInput" placeholder="Search by username..."
+             style="width:100%; padding:11px 14px; border-radius:12px; border:2px solid #F0EAF8; background:var(--cream); font-family:'Nunito',sans-serif; font-size:14px; color:var(--plum); margin-bottom:10px;">
+      <div id="friendSearchResults"></div>
+      <div id="friendSearchHint" style="font-size:12px; color:var(--plum-soft); font-weight:700; text-align:center; padding:8px 0;">
+        Tip: this only finds accounts created in this same browser.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* Kingdom — Supabase config
+   Fill these in from your Supabase project:
+   Project Settings → API → Project URL / anon public key */
+
+const SUPABASE_URL = 'https://jswsndzdfplggebjigzd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3NuZHpkZnBsZ2dlYmppZ3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjkxNjYsImV4cCI6MjA5ODc0NTE2Nn0.hsDtuylSBhpmikgSGFZ7YVLgl5ubspYiRu6Al0iswvA';
+
+// Single shared Supabase client used by kingdom-auth.js and kingdom-friends.js
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+</script>
+<script>
+/* Kingdom — real auth, backed by Supabase.
+   Requires kingdom-config.js (defines supabaseClient) to be loaded first,
+   and the Supabase JS library script tag loaded before that. */
+
+const KingdomAuth = (() => {
+
+  async function signUp({ email, password, username, displayName, birthday }) {
+    username = (username || '').trim().toLowerCase();
+    email = (email || '').trim();
+
+    if (!email || !password || !username) {
+      return { ok: false, error: 'Fill in email, username, and password.' };
+    }
+    if (password.length < 8) {
+      return { ok: false, error: 'Password must be at least 8 characters.' };
+    }
+
+    // 1. Create the auth account
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) {
+      return { ok: false, error: error.message };
+    }
+    if (!data.user) {
+      return { ok: false, error: 'Something went wrong creating your account.' };
+    }
+
+    // 2. Create their profile row (username, display name, etc.)
+    const { error: profileError } = await supabaseClient.from('profiles').insert({
+      id: data.user.id,
+      username,
+      display_name: displayName || username,
+      birthday: birthday || null
+    });
+
+    if (profileError) {
+      if (profileError.message.includes('duplicate') || profileError.code === '23505') {
+        return { ok: false, error: 'That username is already taken.' };
+      }
+      return { ok: false, error: profileError.message };
+    }
+
+    // If email confirmation is required, there won't be a session yet
+    if (!data.session) {
+      return {
+        ok: true,
+        needsConfirmation: true,
+        message: 'Account created! Check your email to confirm before logging in.'
+      };
+    }
+
+    return { ok: true, username };
+  }
+
+  async function logIn({ email, password }) {
+    email = (email || '').trim();
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) {
+      return { ok: false, error: 'Incorrect email or password.' };
+    }
+    return { ok: true, user: data.user };
+  }
+
+  async function logOut() {
+    await supabaseClient.auth.signOut();
+  }
+
+  async function getCurrentUser() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return null;
+
+    const { data: profile, error } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !profile) return null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: profile.username,
+      displayName: profile.display_name,
+      birthday: profile.birthday
+    };
+  }
+
+  // Redirects to the landing page if nobody is logged in. Call at the top
+  // of any "members only" page. Returns the current user (or null).
+  async function requireAuth(redirectTo) {
+    const user = await getCurrentUser();
+    if (!user) {
+      window.location.href = redirectTo || 'index.html';
+      return null;
+    }
+    return user;
+  }
+
+  return { signUp, logIn, logOut, getCurrentUser, requireAuth };
+})();
+
+</script>
+<script>
+/* Kingdom — real friends system, backed by Supabase.
+   Requires kingdom-config.js (defines supabaseClient) to be loaded first. */
+
+const KingdomFriends = (() => {
+
+  function sortedPair(a, b) {
+    return a < b ? [a, b] : [b, a];
+  }
+
+  // Search other users by username or display name (excludes yourself)
+  async function searchUsers(query, myId) {
+    query = (query || '').trim();
+    if (!query) return [];
+
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .select('id, username, display_name')
+      .neq('id', myId)
+      .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
+      .limit(15);
+
+    if (error || !data) return [];
+    return data.map(p => ({ id: p.id, username: p.username, displayName: p.display_name }));
+  }
+
+  async function areFriends(myId, otherId) {
+    const [a, b] = sortedPair(myId, otherId);
+    const { data } = await supabaseClient
+      .from('friendships')
+      .select('id')
+      .eq('user_a', a)
+      .eq('user_b', b)
+      .maybeSingle();
+    return !!data;
+  }
+
+  async function sendRequest(fromId, toId) {
+    if (fromId === toId) return { ok: false, error: "You can't friend yourself." };
+
+    const alreadyFriends = await areFriends(fromId, toId);
+    if (alreadyFriends) return { ok: false, error: 'Already friends.' };
+
+    // If they already requested you, accept instead of duplicating
+    const { data: theirRequest } = await supabaseClient
+      .from('friend_requests')
+      .select('id')
+      .eq('from_id', toId)
+      .eq('to_id', fromId)
+      .maybeSingle();
+
+    if (theirRequest) {
+      return acceptRequest(theirRequest.id, fromId, toId);
+    }
+
+    const { error } = await supabaseClient
+      .from('friend_requests')
+      .insert({ from_id: fromId, to_id: toId });
+
+    if (error) {
+      if (error.code === '23505') return { ok: false, error: 'Request already sent.' };
+      return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  }
+
+  async function getIncomingRequests(myId) {
+    const { data: requests, error } = await supabaseClient
+      .from('friend_requests')
+      .select('id, from_id')
+      .eq('to_id', myId);
+
+    if (error || !requests || requests.length === 0) return [];
+
+    const fromIds = requests.map(r => r.from_id);
+    const { data: profiles } = await supabaseClient
+      .from('profiles')
+      .select('id, username, display_name')
+      .in('id', fromIds);
+
+    const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
+    return requests.map(r => ({
+      requestId: r.id,
+      fromId: r.from_id,
+      username: profileMap[r.from_id]?.username || 'unknown',
+      displayName: profileMap[r.from_id]?.display_name || 'Unknown'
+    }));
+  }
+
+  async function acceptRequest(requestId, myId, fromId) {
+    const [a, b] = sortedPair(myId, fromId);
+
+    const { error: insertError } = await supabaseClient
+      .from('friendships')
+      .insert({ user_a: a, user_b: b });
+
+    // Ignore "already exists" errors, otherwise bubble up
+    if (insertError && insertError.code !== '23505') {
+      return { ok: false, error: insertError.message };
+    }
+
+    await supabaseClient.from('friend_requests').delete().eq('id', requestId);
+    return { ok: true };
+  }
+
+  async function declineRequest(requestId) {
+    const { error } = await supabaseClient.from('friend_requests').delete().eq('id', requestId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  }
+
+  async function getFriends(myId) {
+    const { data: friendships, error } = await supabaseClient
+      .from('friendships')
+      .select('id, user_a, user_b')
+      .or(`user_a.eq.${myId},user_b.eq.${myId}`);
+
+    if (error || !friendships || friendships.length === 0) return [];
+
+    const otherIds = friendships.map(f => (f.user_a === myId ? f.user_b : f.user_a));
+    const { data: profiles } = await supabaseClient
+      .from('profiles')
+      .select('id, username, display_name')
+      .in('id', otherIds);
+
+    const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
+    return friendships.map(f => {
+      const otherId = f.user_a === myId ? f.user_b : f.user_a;
+      return {
+        friendshipId: f.id,
+        id: otherId,
+        username: profileMap[otherId]?.username || 'unknown',
+        displayName: profileMap[otherId]?.display_name || 'Unknown'
+      };
+    });
+  }
+
+  async function removeFriend(friendshipId) {
+    const { error } = await supabaseClient.from('friendships').delete().eq('id', friendshipId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  }
+
+  return {
+    searchUsers,
+    sendRequest,
+    getIncomingRequests,
+    acceptRequest,
+    declineRequest,
+    getFriends,
+    removeFriend,
+    areFriends
+  };
+})();
+
+</script>
+<script>
+  let currentUser = null;
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------- friends: render ----------
+  async function renderFriends() {
+    if (!currentUser) return;
+    const myId = currentUser.id;
+
+    // Incoming requests
+    const incoming = await KingdomFriends.getIncomingRequests(myId);
+    const incomingBox = document.getElementById('incomingRequestsBox');
+    const incomingList = document.getElementById('incomingRequestsList');
+    incomingList.innerHTML = '';
+    if (incoming.length > 0) {
+      incomingBox.style.display = 'block';
+      incoming.forEach(req => {
+        const row = document.createElement('div');
+        row.className = 'request-row';
+        row.innerHTML = `
+          <div class="req-avatar">🙂</div>
+          <div class="who">${escapeHtml(req.displayName)}</div>
+          <button class="btn-accept">Accept</button>
+          <button class="btn-decline">Decline</button>
+        `;
+        row.querySelector('.btn-accept').addEventListener('click', async () => {
+          await KingdomFriends.acceptRequest(req.requestId, myId, req.fromId);
+          renderFriends();
+        });
+        row.querySelector('.btn-decline').addEventListener('click', async () => {
+          await KingdomFriends.declineRequest(req.requestId);
+          renderFriends();
+        });
+        incomingList.appendChild(row);
+      });
+    } else {
+      incomingBox.style.display = 'none';
+    }
+
+    // Friends list
+    const friends = await KingdomFriends.getFriends(myId);
+    document.getElementById('friendCount').textContent = friends.length;
+    const emptyState = document.getElementById('friendsEmptyState');
+    const listEl = document.getElementById('friendsList');
+    listEl.innerHTML = '';
+
+    if (friends.length === 0) {
+      emptyState.style.display = 'block';
+    } else {
+      emptyState.style.display = 'none';
+      friends.forEach(friend => {
+        const row = document.createElement('div');
+        row.className = 'friend-row';
+        row.innerHTML = `
+          <div class="friend-avatar">🙂<span class="status-dot offline"></span></div>
+          <div class="friend-info">
+            <div class="friend-name">${escapeHtml(friend.displayName)}</div>
+            <div class="friend-status">@${escapeHtml(friend.username)}</div>
+          </div>
+          <button class="btn-remove-friend" title="Remove friend">✕</button>
+        `;
+        row.querySelector('.btn-remove-friend').addEventListener('click', async () => {
+          await KingdomFriends.removeFriend(friend.friendshipId);
+          renderFriends();
+        });
+        listEl.appendChild(row);
+      });
+    }
+  }
+
+  // ---------- friends: add-friend search panel ----------
+  const addFriendToggle = document.getElementById('addFriendToggle');
+  const addFriendPanel = document.getElementById('addFriendPanel');
+  const friendSearchInput = document.getElementById('friendSearchInput');
+  const friendSearchResults = document.getElementById('friendSearchResults');
+
+  addFriendToggle.addEventListener('click', () => {
+    const isOpen = addFriendPanel.style.display === 'block';
+    addFriendPanel.style.display = isOpen ? 'none' : 'block';
+    addFriendToggle.textContent = isOpen ? '+ Add friend' : '– Close search';
+    if (!isOpen) friendSearchInput.focus();
+  });
+
+  friendSearchInput.addEventListener('input', async () => {
+    const query = friendSearchInput.value;
+    friendSearchResults.innerHTML = '';
+    if (!query.trim()) return;
+
+    const results = await KingdomFriends.searchUsers(query, currentUser.id);
+    if (results.length === 0) {
+      friendSearchResults.innerHTML = '<div class="no-results">No matching users found.</div>';
+      return;
+    }
+
+    results.forEach(result => {
+      const row = document.createElement('div');
+      row.className = 'result-row';
+      row.innerHTML = `
+        <div class="result-avatar">🙂</div>
+        <div class="who">${escapeHtml(result.displayName)}</div>
+        <button class="btn-send-request">Add</button>
+      `;
+      row.querySelector('.btn-send-request').addEventListener('click', async () => {
+        const btn = row.querySelector('.btn-send-request');
+        const res = await KingdomFriends.sendRequest(currentUser.id, result.id);
+        if (res.ok) {
+          btn.textContent = 'Sent ✓';
+          btn.disabled = true;
+          renderFriends();
+        } else {
+          btn.textContent = res.error || 'Error';
+        }
+      });
+      friendSearchResults.appendChild(row);
+    });
+  });
+
+  // ---------- page init ----------
+  (async () => {
+    currentUser = await KingdomAuth.requireAuth('index.html');
+    if (!currentUser) return; // requireAuth already redirected
+
+    document.getElementById('profileName').textContent = currentUser.displayName;
+    document.getElementById('profileHandle').textContent = '@' + currentUser.username;
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await KingdomAuth.logOut();
+      window.location.href = 'index.html';
+    });
+
+    renderFriends();
+  })();
+</script>
+
+</body>
+</html>
