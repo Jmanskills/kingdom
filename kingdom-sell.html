@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kingdom — Sell an item</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lavender: #EAD9FF; --lavender-deep: #C9A6FF;
+    --mint: #C7F5DE; --mint-deep: #8FE0B8;
+    --peach: #FFD9BE; --peach-deep: #FFB98A;
+    --sky: #C3E7FF; --sky-deep: #8FCCF5;
+    --plum: #4A3B63; --plum-soft: #7A6B94;
+    --cream: #F6F0FC; --white: #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--plum); min-height: 100vh; }
+  h1, .brand { font-family: 'Fredoka', sans-serif; }
+
+  .bg-blob { position: fixed; border-radius: 50%; z-index: 0; opacity: 0.5; }
+  .bg-blob.b1 { width: 320px; height: 320px; background: var(--sky); top: -100px; right: -80px; }
+  .bg-blob.b2 { width: 260px; height: 260px; background: var(--peach); bottom: -90px; left: -70px; opacity: 0.4; }
+
+  nav {
+    position: relative; z-index: 10; display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 48px; max-width: 1300px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 600; }
+  .brand-crown { width: 30px; height: 30px; }
+  .nav-cta {
+    background: var(--plum); color: var(--cream); border: none; padding: 10px 22px; border-radius: 999px;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--sky-deep); outline-offset: 2px; }
+
+  .page-head { position: relative; z-index: 5; max-width: 600px; margin: 0 auto; padding: 12px 24px 8px; }
+  .page-head h1 { font-size: 32px; font-weight: 600; margin-bottom: 4px; }
+  .page-head p { color: var(--plum-soft); font-weight: 700; font-size: 14px; }
+
+  .sell-card {
+    position: relative; z-index: 5; max-width: 600px; margin: 24px auto 100px;
+    background: var(--white); border-radius: 28px; padding: 36px;
+    box-shadow: 0 10px 24px rgba(74,59,99,0.08);
+  }
+
+  .cat-row { display: flex; gap: 10px; margin-bottom: 24px; }
+  .cat-btn {
+    flex: 1; background: var(--cream); border: 2px solid transparent; padding: 14px; border-radius: 14px;
+    font-weight: 800; font-size: 13px; color: var(--plum-soft); cursor: pointer; text-align: center;
+  }
+  .cat-btn.active { border-color: var(--lavender-deep); background: var(--lavender); color: var(--plum); }
+  .cat-btn .icon { display: block; font-size: 22px; margin-bottom: 4px; }
+
+  .field { margin-bottom: 20px; }
+  .field label { display: block; font-size: 13px; font-weight: 800; color: var(--plum); margin-bottom: 8px; }
+  .field input[type="text"], .field input[type="number"] {
+    width: 100%; padding: 14px 16px; border-radius: 14px; border: 2px solid #F0EAF8;
+    background: var(--cream); font-family: 'Nunito', sans-serif; font-size: 15px; color: var(--plum);
+  }
+  .field input:focus { outline: none; border-color: var(--lavender-deep); }
+
+  .color-swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+  .color-swatch {
+    width: 40px; height: 40px; border-radius: 12px; cursor: pointer; border: 3px solid transparent;
+  }
+  .color-swatch.active { border-color: var(--plum); }
+
+  .file-drop {
+    border: 3px dashed var(--lavender-deep); border-radius: 16px; padding: 28px; text-align: center;
+    cursor: pointer; background: var(--cream);
+  }
+  .file-drop:hover { background: var(--lavender); }
+  .file-drop .icon { font-size: 32px; margin-bottom: 8px; }
+  .file-drop .filename { font-size: 12px; font-weight: 800; color: var(--plum); margin-top: 8px; }
+  #assetFileInput { display: none; }
+
+  .btn-save {
+    width: 100%; background: var(--mint-deep); color: var(--plum); border: none; padding: 15px;
+    border-radius: 14px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px;
+    cursor: pointer; box-shadow: 0 5px 0 #6DC79A; margin-top: 8px;
+  }
+  .btn-save:active { transform: translateY(3px); box-shadow: 0 2px 0 #6DC79A; }
+  .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  #statusMsg { display: none; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 13px; margin-bottom: 18px; }
+  #statusMsg.error { background: #FFE3E3; color: #B8433D; display: block; }
+  #statusMsg.success { background: #E3F5EA; color: #2F8F58; display: block; }
+
+  @media (max-width: 650px) {
+    nav, .page-head, .sell-card { padding-left: 24px; padding-right: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+
+<nav>
+  <div class="brand">
+    <svg class="brand-crown" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 28 L4 14 L12 20 L20 8 L28 20 L36 14 L34 28 Z" fill="#FFB98A" stroke="#4A3B63" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="5" y="28" width="30" height="5" rx="2" fill="#FFB98A" stroke="#4A3B63" stroke-width="2"/>
+    </svg>
+    Kingdom
+  </div>
+  <button class="nav-cta" onclick="window.location.href='kingdom-shop.html'">Back to shop</button>
+</nav>
+
+<div class="page-head">
+  <h1>Sell an item</h1>
+  <p>List a hat, back item, or shirt for other players to buy with Kingcoins.</p>
+</div>
+
+<div class="sell-card">
+  <div id="statusMsg"></div>
+
+  <div class="cat-row" id="catRow">
+    <button class="cat-btn active" data-cat="hat"><span class="icon">🎩</span>Hat</button>
+    <button class="cat-btn" data-cat="back"><span class="icon">🎒</span>Back</button>
+    <button class="cat-btn" data-cat="shirt"><span class="icon">👕</span>Shirt</button>
+  </div>
+
+  <div class="field">
+    <label for="nameField">Item name</label>
+    <input type="text" id="nameField" maxlength="40" placeholder="e.g. Wizard Hat">
+  </div>
+
+  <div class="field">
+    <label for="priceField">Price (Kingcoins)</label>
+    <input type="number" id="priceField" min="0" max="100000" value="50">
+  </div>
+
+  <!-- Shown for hats/back: upload a 3D model -->
+  <div class="field" id="modelUploadField">
+    <label>Model file (.fbx or .glb)</label>
+    <div class="file-drop" id="fileDropZone">
+      <div class="icon">📦</div>
+      <div>Click to choose a file</div>
+      <div class="filename" id="fileNameDisplay"></div>
+    </div>
+    <input type="file" id="assetFileInput" accept=".fbx,.glb">
+  </div>
+
+  <!-- Shown for shirts: upload a texture image -->
+  <div class="field" id="colorField" style="display:none;">
+    <label>Shirt texture image</label>
+    <div class="file-drop" id="textureDropZone">
+      <div class="icon">🖼️</div>
+      <div>Click to choose an image</div>
+      <div class="filename" id="textureFileNameDisplay"></div>
+    </div>
+    <input type="file" id="textureFileInput" accept="image/png, image/jpeg, image/webp">
+  </div>
+
+  <button class="btn-save" id="listBtn">List this item</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://jswsndzdfplggebjigzd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3NuZHpkZnBsZ2dlYmppZ3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjkxNjYsImV4cCI6MjA5ODc0NTE2Nn0.hsDtuylSBhpmikgSGFZ7YVLgl5ubspYiRu6Al0iswvA';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+<script>
+const KingdomAuth = (() => {
+  async function getCurrentUser() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return null;
+    const { data: profile, error } = await supabaseClient
+      .from('profiles').select('*').eq('id', user.id).single();
+    if (error || !profile) return null;
+    return { id: user.id, username: profile.username, displayName: profile.display_name };
+  }
+  async function requireAuth(redirectTo) {
+    const user = await getCurrentUser();
+    if (!user) { window.location.href = redirectTo || 'index.html'; return null; }
+    return user;
+  }
+  return { getCurrentUser, requireAuth };
+})();
+</script>
+<script>
+  let currentUser = null;
+  let currentCategory = 'hat';
+  let pendingFile = null;      // for hats/back: model file
+  let pendingTextureFile = null; // for shirts: texture image
+
+  const statusMsg = document.getElementById('statusMsg');
+  function showStatus(msg, type) {
+    statusMsg.textContent = msg;
+    statusMsg.className = type;
+  }
+
+  document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCategory = btn.dataset.cat;
+      document.getElementById('modelUploadField').style.display = currentCategory === 'shirt' ? 'none' : 'block';
+      document.getElementById('colorField').style.display = currentCategory === 'shirt' ? 'block' : 'none';
+    });
+  });
+
+  const fileDropZone = document.getElementById('fileDropZone');
+  const fileInput = document.getElementById('assetFileInput');
+  fileDropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    pendingFile = file;
+    document.getElementById('fileNameDisplay').textContent = file.name;
+  });
+
+  const textureDropZone = document.getElementById('textureDropZone');
+  const textureFileInput = document.getElementById('textureFileInput');
+  textureDropZone.addEventListener('click', () => textureFileInput.click());
+  textureFileInput.addEventListener('change', () => {
+    const file = textureFileInput.files[0];
+    if (!file) return;
+    pendingTextureFile = file;
+    document.getElementById('textureFileNameDisplay').textContent = file.name;
+  });
+
+  document.getElementById('listBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('listBtn');
+    const name = document.getElementById('nameField').value.trim();
+    const price = parseInt(document.getElementById('priceField').value, 10);
+
+    if (!name) return showStatus('Give your item a name.', 'error');
+    if (isNaN(price) || price < 0) return showStatus('Enter a valid price.', 'error');
+    if (currentCategory !== 'shirt' && !pendingFile) return showStatus('Upload a model file for this item.', 'error');
+    if (currentCategory === 'shirt' && !pendingTextureFile) return showStatus('Upload a texture image for this shirt.', 'error');
+
+    btn.disabled = true;
+    btn.textContent = 'Listing...';
+
+    let assetUrl = null;
+    let textureUrl = null;
+
+    if (currentCategory !== 'shirt') {
+      const ext = pendingFile.name.split('.').pop();
+      const path = `${currentUser.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabaseClient.storage
+        .from('shop-assets')
+        .upload(path, pendingFile);
+
+      if (uploadError) {
+        btn.disabled = false;
+        btn.textContent = 'List this item';
+        return showStatus('Upload failed: ' + uploadError.message, 'error');
+      }
+      const { data: publicUrlData } = supabaseClient.storage.from('shop-assets').getPublicUrl(path);
+      assetUrl = publicUrlData.publicUrl;
+    } else {
+      const ext = pendingTextureFile.name.split('.').pop();
+      const path = `${currentUser.id}/${Date.now()}-texture.${ext}`;
+      const { error: uploadError } = await supabaseClient.storage
+        .from('shop-assets')
+        .upload(path, pendingTextureFile);
+
+      if (uploadError) {
+        btn.disabled = false;
+        btn.textContent = 'List this item';
+        return showStatus('Upload failed: ' + uploadError.message, 'error');
+      }
+      const { data: publicUrlData } = supabaseClient.storage.from('shop-assets').getPublicUrl(path);
+      textureUrl = publicUrlData.publicUrl;
+    }
+
+    const { error: insertError } = await supabaseClient.from('shop_items').insert({
+      seller_id: currentUser.id,
+      category: currentCategory,
+      name,
+      price,
+      texture_url: textureUrl,
+      asset_url: assetUrl
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'List this item';
+
+    if (insertError) {
+      return showStatus('Could not list item: ' + insertError.message, 'error');
+    }
+
+    showStatus('Listed! Redirecting to shop...', 'success');
+    setTimeout(() => { window.location.href = 'kingdom-shop.html'; }, 1200);
+  });
+
+  (async () => {
+    currentUser = await KingdomAuth.requireAuth('index.html');
+  })();
+</script>
+
+</body>
+</html>

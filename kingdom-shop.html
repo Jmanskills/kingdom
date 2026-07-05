@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kingdom — Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lavender: #EAD9FF; --lavender-deep: #C9A6FF;
+    --mint: #C7F5DE; --mint-deep: #8FE0B8;
+    --peach: #FFD9BE; --peach-deep: #FFB98A;
+    --sky: #C3E7FF; --sky-deep: #8FCCF5;
+    --plum: #4A3B63; --plum-soft: #7A6B94;
+    --cream: #F6F0FC; --white: #FFFFFF;
+    --gold: #F0B93E;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--plum); min-height: 100vh; }
+  h1, .brand { font-family: 'Fredoka', sans-serif; }
+
+  .bg-blob { position: fixed; border-radius: 50%; z-index: 0; opacity: 0.5; }
+  .bg-blob.b1 { width: 340px; height: 340px; background: var(--lavender); top: -110px; left: -90px; }
+  .bg-blob.b2 { width: 260px; height: 260px; background: var(--mint); bottom: -90px; right: -70px; }
+
+  nav {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 48px; max-width: 1300px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 600; }
+  .brand-crown { width: 30px; height: 30px; }
+  .nav-right { display: flex; align-items: center; gap: 14px; }
+  .coin-badge {
+    display: flex; align-items: center; gap: 6px; background: var(--white); padding: 8px 16px;
+    border-radius: 999px; font-weight: 800; font-size: 14px; box-shadow: 0 4px 10px rgba(74,59,99,0.1);
+  }
+  .nav-cta {
+    background: var(--plum); color: var(--cream); border: none; padding: 10px 22px; border-radius: 999px;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+  .nav-cta.ghost { background: var(--white); color: var(--plum); box-shadow: 0 4px 10px rgba(74,59,99,0.1); }
+
+  .page-head { position: relative; z-index: 5; max-width: 1300px; margin: 0 auto; padding: 12px 48px 8px; }
+  .page-head h1 { font-size: 34px; font-weight: 600; margin-bottom: 6px; }
+
+  .tabs { position: relative; z-index: 5; max-width: 1300px; margin: 0 auto; padding: 16px 48px 0; display: flex; gap: 10px; }
+  .tab-btn {
+    background: var(--white); border: none; padding: 10px 22px; border-radius: 999px;
+    font-weight: 800; font-size: 14px; color: var(--plum-soft); cursor: pointer; transition: all 0.2s ease;
+  }
+  .tab-btn.active { background: var(--plum); color: var(--cream); }
+
+  .grid-section { position: relative; z-index: 5; max-width: 1300px; margin: 0 auto; padding: 24px 48px 100px; }
+  .item-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+
+  .item-card {
+    background: var(--white); border-radius: 22px; overflow: hidden;
+    box-shadow: 0 10px 24px rgba(74,59,99,0.08); transition: transform 0.15s ease;
+  }
+  .item-card:hover { transform: translateY(-4px); }
+  .item-thumb {
+    aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; font-size: 36px;
+  }
+  .item-info { padding: 14px 16px 16px; }
+  .item-info h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .item-meta { font-size: 12px; color: var(--plum-soft); font-weight: 700; margin-bottom: 10px; }
+  .btn-buy {
+    width: 100%; background: var(--gold); color: #5A4300; border: none; padding: 10px;
+    border-radius: 999px; font-weight: 800; font-size: 13px; cursor: pointer;
+  }
+  .btn-buy:disabled { background: var(--mint-deep); color: var(--plum); cursor: default; }
+  .btn-buy.cant-afford { background: #F0EAF8; color: var(--plum-soft); cursor: not-allowed; }
+
+  .no-items { text-align: center; padding: 60px 20px; color: var(--plum-soft); font-weight: 700; }
+  .sell-cta {
+    display: block; margin: 0 auto 20px; text-align: center;
+  }
+
+  @media (max-width: 1000px) {
+    .item-grid { grid-template-columns: repeat(2, 1fr); }
+    nav, .page-head, .tabs, .grid-section { padding-left: 24px; padding-right: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+
+<nav>
+  <div class="brand">
+    <svg class="brand-crown" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 28 L4 14 L12 20 L20 8 L28 20 L36 14 L34 28 Z" fill="#FFB98A" stroke="#4A3B63" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="5" y="28" width="30" height="5" rx="2" fill="#FFB98A" stroke="#4A3B63" stroke-width="2"/>
+    </svg>
+    Kingdom
+  </div>
+  <div class="nav-right">
+    <div class="coin-badge">🪙 <span id="coinCount">0</span></div>
+    <button class="nav-cta ghost" onclick="window.location.href='kingdom-sell.html'">+ Sell an item</button>
+    <button class="nav-cta ghost" onclick="window.location.href='kingdom-inventory.html'">My items</button>
+    <button class="nav-cta" onclick="window.location.href='kingdom-home.html'">Home</button>
+  </div>
+</nav>
+
+<div class="page-head">
+  <h1>Shop</h1>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab-btn active" data-cat="hat">🎩 Hats</button>
+  <button class="tab-btn" data-cat="back">🎒 Back</button>
+  <button class="tab-btn" data-cat="shirt">👕 Shirts</button>
+</div>
+
+<div class="grid-section">
+  <div class="item-grid" id="itemGrid"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://jswsndzdfplggebjigzd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3NuZHpkZnBsZ2dlYmppZ3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjkxNjYsImV4cCI6MjA5ODc0NTE2Nn0.hsDtuylSBhpmikgSGFZ7YVLgl5ubspYiRu6Al0iswvA';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+<script>
+const KingdomAuth = (() => {
+  async function getCurrentUser() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return null;
+    const { data: profile, error } = await supabaseClient
+      .from('profiles').select('*').eq('id', user.id).single();
+    if (error || !profile) return null;
+    return { id: user.id, username: profile.username, displayName: profile.display_name, coins: profile.coins };
+  }
+  async function requireAuth(redirectTo) {
+    const user = await getCurrentUser();
+    if (!user) { window.location.href = redirectTo || 'index.html'; return null; }
+    return user;
+  }
+  return { getCurrentUser, requireAuth };
+})();
+</script>
+<script>
+  let currentUser = null;
+  let currentCategory = 'hat';
+  let ownedItemIds = new Set();
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  const categoryIcon = { hat: '🎩', back: '🎒', shirt: '👕' };
+
+  async function loadOwnedItems() {
+    const { data } = await supabaseClient
+      .from('purchases').select('item_id').eq('buyer_id', currentUser.id);
+    ownedItemIds = new Set((data || []).map(p => p.item_id));
+  }
+
+  async function renderShop() {
+    const { data: items, error } = await supabaseClient
+      .from('shop_items')
+      .select('id, name, price, color, texture_url, thumbnail_url, seller_id')
+      .eq('category', currentCategory)
+      .order('created_at', { ascending: false });
+
+    const grid = document.getElementById('itemGrid');
+    grid.innerHTML = '';
+
+    if (error || !items || items.length === 0) {
+      grid.innerHTML = `<div class="no-items">No ${escapeHtml(currentCategory)} items yet — be the first to <a href="kingdom-sell.html">sell one</a>!</div>`;
+      return;
+    }
+
+    const sellerIds = [...new Set(items.map(i => i.seller_id))];
+    const { data: profiles } = await supabaseClient
+      .from('profiles').select('id, display_name').in('id', sellerIds);
+    const sellerMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
+
+    items.forEach(item => {
+      const owned = ownedItemIds.has(item.id);
+      const isMine = item.seller_id === currentUser.id;
+      const canAfford = currentUser.coins >= item.price;
+
+      const card = document.createElement('div');
+      card.className = 'item-card';
+
+      const thumbHtml = item.texture_url
+        ? `<img src="${item.texture_url}" alt="${escapeHtml(item.name)}" style="width:100%;height:100%;object-fit:cover;">`
+        : (item.color ? '' : categoryIcon[currentCategory]);
+      const thumbStyle = item.texture_url
+        ? ''
+        : (item.color ? `background:${item.color};` : `background: repeating-linear-gradient(135deg, var(--lavender) 0 16px, var(--sky) 16px 32px);`);
+
+      let buttonHtml;
+      if (isMine) {
+        buttonHtml = `<button class="btn-buy" disabled>Your listing</button>`;
+      } else if (owned) {
+        buttonHtml = `<button class="btn-buy" disabled>✓ Owned</button>`;
+      } else if (!canAfford) {
+        buttonHtml = `<button class="btn-buy cant-afford" disabled>Not enough coins</button>`;
+      } else {
+        buttonHtml = `<button class="btn-buy">Buy for 🪙 ${item.price}</button>`;
+      }
+
+      card.innerHTML = `
+        <div class="item-thumb" style="${thumbStyle}">${thumbHtml}</div>
+        <div class="item-info">
+          <h3>${escapeHtml(item.name)}</h3>
+          <div class="item-meta">by ${escapeHtml(sellerMap[item.seller_id]?.display_name || 'Unknown')}</div>
+          ${buttonHtml}
+        </div>
+      `;
+
+      if (!isMine && !owned && canAfford) {
+        card.querySelector('.btn-buy').addEventListener('click', () => buyItem(item.id, card));
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  async function buyItem(itemId, cardEl) {
+    const btn = cardEl.querySelector('.btn-buy');
+    btn.disabled = true;
+    btn.textContent = 'Buying...';
+
+    const { data, error } = await supabaseClient.rpc('purchase_item', { item_id_input: itemId });
+
+    if (error || !data || !data.ok) {
+      alert('Could not buy item: ' + (data?.error || error?.message || 'Unknown error'));
+      btn.disabled = false;
+      btn.textContent = 'Buy';
+      return;
+    }
+
+    // Refresh coin balance and re-render
+    currentUser = await KingdomAuth.getCurrentUser();
+    document.getElementById('coinCount').textContent = currentUser.coins;
+    await loadOwnedItems();
+    renderShop();
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCategory = btn.dataset.cat;
+      renderShop();
+    });
+  });
+
+  (async () => {
+    currentUser = await KingdomAuth.requireAuth('index.html');
+    if (!currentUser) return;
+    document.getElementById('coinCount').textContent = currentUser.coins;
+    await loadOwnedItems();
+    renderShop();
+  })();
+</script>
+
+</body>
+</html>

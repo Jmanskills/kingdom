@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kingdom — My Items</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lavender: #EAD9FF; --lavender-deep: #C9A6FF;
+    --mint: #C7F5DE; --mint-deep: #8FE0B8;
+    --peach: #FFD9BE; --peach-deep: #FFB98A;
+    --sky: #C3E7FF; --sky-deep: #8FCCF5;
+    --plum: #4A3B63; --plum-soft: #7A6B94;
+    --cream: #F6F0FC; --white: #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--plum); min-height: 100vh; }
+  h1, .brand { font-family: 'Fredoka', sans-serif; }
+
+  .bg-blob { position: fixed; border-radius: 50%; z-index: 0; opacity: 0.5; }
+  .bg-blob.b1 { width: 340px; height: 340px; background: var(--lavender); top: -110px; left: -90px; }
+  .bg-blob.b2 { width: 260px; height: 260px; background: var(--mint); bottom: -90px; right: -70px; }
+
+  nav {
+    position: relative; z-index: 10; display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 48px; max-width: 1300px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 600; }
+  .brand-crown { width: 30px; height: 30px; }
+  .nav-cta {
+    background: var(--plum); color: var(--cream); border: none; padding: 10px 22px; border-radius: 999px;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+
+  .page-head { position: relative; z-index: 5; max-width: 1300px; margin: 0 auto; padding: 12px 48px 8px; }
+  .page-head h1 { font-size: 34px; font-weight: 600; margin-bottom: 6px; }
+
+  .tabs { position: relative; z-index: 5; max-width: 1300px; margin: 0 auto; padding: 16px 48px 0; display: flex; gap: 10px; }
+  .tab-btn {
+    background: var(--white); border: none; padding: 10px 22px; border-radius: 999px;
+    font-weight: 800; font-size: 14px; color: var(--plum-soft); cursor: pointer; transition: all 0.2s ease;
+  }
+  .tab-btn.active { background: var(--plum); color: var(--cream); }
+
+  .grid-section { position: relative; z-index: 5; max-width: 1300px; margin: 0 auto; padding: 24px 48px 100px; }
+  .item-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+
+  .item-card {
+    background: var(--white); border-radius: 22px; overflow: hidden;
+    box-shadow: 0 10px 24px rgba(74,59,99,0.08); transition: transform 0.15s ease;
+  }
+  .item-card.equipped { box-shadow: 0 0 0 3px var(--mint-deep), 0 10px 24px rgba(74,59,99,0.08); }
+  .item-thumb {
+    aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; font-size: 36px;
+  }
+  .item-info { padding: 14px 16px 16px; }
+  .item-info h3 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+  .btn-equip {
+    width: 100%; background: var(--cream); color: var(--plum); border: none; padding: 10px;
+    border-radius: 999px; font-weight: 800; font-size: 13px; cursor: pointer;
+  }
+  .btn-equip.is-equipped { background: var(--mint-deep); }
+
+  .no-items { text-align: center; padding: 60px 20px; color: var(--plum-soft); font-weight: 700; }
+
+  @media (max-width: 1000px) {
+    .item-grid { grid-template-columns: repeat(2, 1fr); }
+    nav, .page-head, .tabs, .grid-section { padding-left: 24px; padding-right: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+
+<nav>
+  <div class="brand">
+    <svg class="brand-crown" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 28 L4 14 L12 20 L20 8 L28 20 L36 14 L34 28 Z" fill="#FFB98A" stroke="#4A3B63" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="5" y="28" width="30" height="5" rx="2" fill="#FFB98A" stroke="#4A3B63" stroke-width="2"/>
+    </svg>
+    Kingdom
+  </div>
+  <button class="nav-cta" onclick="window.location.href='kingdom-shop.html'">Back to shop</button>
+</nav>
+
+<div class="page-head">
+  <h1>My items</h1>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" data-cat="hat">🎩 Hats</button>
+  <button class="tab-btn" data-cat="back">🎒 Back</button>
+  <button class="tab-btn" data-cat="shirt">👕 Shirts</button>
+</div>
+
+<div class="grid-section">
+  <div class="item-grid" id="itemGrid"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://jswsndzdfplggebjigzd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3NuZHpkZnBsZ2dlYmppZ3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjkxNjYsImV4cCI6MjA5ODc0NTE2Nn0.hsDtuylSBhpmikgSGFZ7YVLgl5ubspYiRu6Al0iswvA';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+<script>
+const KingdomAuth = (() => {
+  async function getCurrentUser() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return null;
+    const { data: profile, error } = await supabaseClient
+      .from('profiles').select('*').eq('id', user.id).single();
+    if (error || !profile) return null;
+    return {
+      id: user.id, username: profile.username, displayName: profile.display_name,
+      equippedHat: profile.equipped_hat, equippedBack: profile.equipped_back, equippedShirt: profile.equipped_shirt
+    };
+  }
+  async function requireAuth(redirectTo) {
+    const user = await getCurrentUser();
+    if (!user) { window.location.href = redirectTo || 'index.html'; return null; }
+    return user;
+  }
+  return { getCurrentUser, requireAuth };
+})();
+</script>
+<script>
+  let currentUser = null;
+  let currentCategory = 'hat';
+  const categoryIcon = { hat: '🎩', back: '🎒', shirt: '👕' };
+  const equipColumn = { hat: 'equipped_hat', back: 'equipped_back', shirt: 'equipped_shirt' };
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function getEquippedId() {
+    if (currentCategory === 'hat') return currentUser.equippedHat;
+    if (currentCategory === 'back') return currentUser.equippedBack;
+    return currentUser.equippedShirt;
+  }
+
+  async function renderInventory() {
+    const { data: purchases } = await supabaseClient
+      .from('purchases')
+      .select('item_id, shop_items(id, name, category, color, texture_url, price)')
+      .eq('buyer_id', currentUser.id);
+
+    const items = (purchases || [])
+      .map(p => p.shop_items)
+      .filter(item => item && item.category === currentCategory);
+
+    const grid = document.getElementById('itemGrid');
+    grid.innerHTML = '';
+
+    if (items.length === 0) {
+      grid.innerHTML = `<div class="no-items">You don't own any ${escapeHtml(currentCategory)} items yet. <a href="kingdom-shop.html">Go shopping →</a></div>`;
+      return;
+    }
+
+    const equippedId = getEquippedId();
+
+    items.forEach(item => {
+      const isEquipped = item.id === equippedId;
+      const card = document.createElement('div');
+      card.className = 'item-card' + (isEquipped ? ' equipped' : '');
+      const thumbHtml = item.texture_url
+        ? `<img src="${item.texture_url}" alt="${escapeHtml(item.name)}" style="width:100%;height:100%;object-fit:cover;">`
+        : (item.color ? '' : categoryIcon[currentCategory]);
+      const thumbStyle = item.texture_url
+        ? ''
+        : (item.color ? `background:${item.color};` : `background: repeating-linear-gradient(135deg, var(--lavender) 0 16px, var(--sky) 16px 32px);`);
+
+      card.innerHTML = `
+        <div class="item-thumb" style="${thumbStyle}">${thumbHtml}</div>
+        <div class="item-info">
+          <h3>${escapeHtml(item.name)}</h3>
+          <button class="btn-equip ${isEquipped ? 'is-equipped' : ''}">${isEquipped ? '✓ Equipped' : 'Equip'}</button>
+        </div>
+      `;
+
+      card.querySelector('.btn-equip').addEventListener('click', async () => {
+        const newValue = isEquipped ? null : item.id;
+        const column = equipColumn[currentCategory];
+        const { error } = await supabaseClient
+          .from('profiles').update({ [column]: newValue }).eq('id', currentUser.id);
+        if (!error) {
+          if (currentCategory === 'hat') currentUser.equippedHat = newValue;
+          if (currentCategory === 'back') currentUser.equippedBack = newValue;
+          if (currentCategory === 'shirt') currentUser.equippedShirt = newValue;
+          renderInventory();
+        }
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCategory = btn.dataset.cat;
+      renderInventory();
+    });
+  });
+
+  (async () => {
+    currentUser = await KingdomAuth.requireAuth('index.html');
+    if (!currentUser) return;
+    renderInventory();
+  })();
+</script>
+
+</body>
+</html>

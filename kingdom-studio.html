@@ -278,6 +278,7 @@ const KingdomRealms = (() => {
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/fflate.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
 <script>
   let currentUser = null;
@@ -445,6 +446,93 @@ const KingdomRealms = (() => {
   let walkAction = null;
   let modelLoaded = false;
 
+  // ---------- equipped hats / back items / shirt color ----------
+  function waitForCurrentUser() {
+    return new Promise((resolve) => {
+      const check = () => { if (currentUser) resolve(); else setTimeout(check, 100); };
+      check();
+    });
+  }
+
+  function loadAccessoryModel(url) {
+    return new Promise((resolve) => {
+      const isGlb = url.toLowerCase().includes('.glb') || url.toLowerCase().includes('.gltf');
+      if (isGlb) {
+        new THREE.GLTFLoader().load(url, (gltf) => resolve(gltf.scene), undefined, () => resolve(null));
+      } else {
+        new THREE.FBXLoader().load(url, (obj) => resolve(obj), undefined, () => resolve(null));
+      }
+    });
+  }
+
+  async function loadEquippedAccessories(baseFbx) {
+    await waitForCurrentUser(); // model can finish loading before auth check completes
+
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('equipped_hat, equipped_back, equipped_shirt')
+      .eq('id', currentUser.id)
+      .single();
+    if (!profile) return;
+
+    const box = new THREE.Box3().setFromObject(baseFbx);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+
+    if (profile.equipped_hat) {
+      const { data: item } = await supabaseClient.from('shop_items').select('asset_url').eq('id', profile.equipped_hat).maybeSingle();
+      if (item && item.asset_url) {
+        const hatObj = await loadAccessoryModel(item.asset_url);
+        if (hatObj) {
+          hatObj.position.set(center.x, box.max.y, center.z);
+          player.add(hatObj);
+        }
+      }
+    }
+
+    if (profile.equipped_back) {
+      const { data: item } = await supabaseClient.from('shop_items').select('asset_url').eq('id', profile.equipped_back).maybeSingle();
+      if (item && item.asset_url) {
+        const backObj = await loadAccessoryModel(item.asset_url);
+        if (backObj) {
+          backObj.position.set(center.x, center.y, box.min.z);
+          player.add(backObj);
+        }
+      }
+    }
+
+    if (profile.equipped_shirt) {
+      const { data: item } = await supabaseClient.from('shop_items').select('color, texture_url').eq('id', profile.equipped_shirt).maybeSingle();
+      if (item && item.texture_url) {
+        const texture = await new Promise((resolve) => {
+          new THREE.TextureLoader().load(item.texture_url, resolve, undefined, () => resolve(null));
+        });
+        if (texture) {
+          texture.encoding = THREE.sRGBEncoding;
+          baseFbx.traverse(node => {
+            if (node.isMesh && node.material) {
+              const mats = Array.isArray(node.material) ? node.material : [node.material];
+              mats.forEach(m => {
+                m.map = texture;
+                m.color.set(0xffffff); // don't tint the texture with the base material color
+                m.needsUpdate = true;
+              });
+            }
+          });
+        }
+      } else if (item && item.color) {
+        // Fallback for older solid-color shirt listings
+        const tint = new THREE.Color(item.color);
+        baseFbx.traverse(node => {
+          if (node.isMesh && node.material) {
+            const mats = Array.isArray(node.material) ? node.material : [node.material];
+            mats.forEach(m => { if (m.color) m.color.copy(tint); });
+          }
+        });
+      }
+    }
+  }
+
   const fbxLoader = new THREE.FBXLoader();
 
   function showLoadError(msg) {
@@ -512,6 +600,8 @@ const KingdomRealms = (() => {
         walkAction.play();
         walkAction.paused = true; // start "idle" (frozen) until the player moves
       }
+
+      loadEquippedAccessories(fbx);
 
       modelLoaded = true;
       console.log('Character model loaded:', fbx);
