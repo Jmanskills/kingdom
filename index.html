@@ -456,7 +456,7 @@ const KingdomAuth = (() => {
     email = (email || '').trim();
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) {
-      return { ok: false, error: 'Incorrect email or password.' };
+      return { ok: false, error: error.message }; // show the real reason, not a generic message
     }
     return { ok: true, user: data.user };
   }

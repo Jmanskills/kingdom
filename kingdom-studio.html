@@ -450,7 +450,7 @@ const KingdomRealms = (() => {
     showLoadError('❌ FBXLoader.js failed to load from the CDN');
   } else {
     fbxLoader.load(
-      'walking.fbx',
+      'Walking.fbx',
     (fbx) => {
       // Success — swap out the placeholder capsule for your real model
       player.remove(playerMesh);
@@ -507,7 +507,7 @@ const KingdomRealms = (() => {
       console.log('Character model loaded:', fbx);
       const banner = document.createElement('div');
       banner.style.cssText = 'position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:9999; background:#3ACB7A; color:#0d3b1f; padding:10px 20px; border-radius:12px; font-family:monospace; font-size:13px; font-weight:bold;';
-      banner.textContent = '✅ walking.fbx loaded successfully';
+      banner.textContent = '✅ Walking.fbx loaded successfully';
       document.body.appendChild(banner);
       setTimeout(() => banner.remove(), 4000);
 
@@ -526,10 +526,10 @@ const KingdomRealms = (() => {
     },
     undefined,
     (err) => {
-      console.warn('Could not load walking.fbx — using placeholder capsule instead.', err);
+      console.warn('Could not load Walking.fbx — using placeholder capsule instead.', err);
       const banner = document.createElement('div');
       banner.style.cssText = 'position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:9999; background:#FF4444; color:#fff; padding:12px 20px; border-radius:12px; font-family:monospace; font-size:13px; font-weight:bold; max-width:80%; text-align:center;';
-      banner.textContent = '❌ Could not load walking.fbx: ' + (err && err.message ? err.message : String(err));
+      banner.textContent = '❌ Could not load Walking.fbx: ' + (err && err.message ? err.message : String(err));
       document.body.appendChild(banner);
     }
   );

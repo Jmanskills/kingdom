@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kingdom — Edit profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lavender: #EAD9FF; --lavender-deep: #C9A6FF;
+    --mint: #C7F5DE; --mint-deep: #8FE0B8;
+    --peach: #FFD9BE; --peach-deep: #FFB98A;
+    --sky: #C3E7FF; --sky-deep: #8FCCF5;
+    --plum: #4A3B63; --plum-soft: #7A6B94;
+    --cream: #F6F0FC; --white: #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--plum); min-height: 100vh; }
+  h1, h2, .brand { font-family: 'Fredoka', sans-serif; }
+
+  .bg-blob { position: fixed; border-radius: 50%; z-index: 0; opacity: 0.5; }
+  .bg-blob.b1 { width: 320px; height: 320px; background: var(--sky); top: -100px; right: -80px; }
+  .bg-blob.b2 { width: 260px; height: 260px; background: var(--peach); bottom: -90px; left: -70px; opacity: 0.4; }
+
+  nav {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 48px; max-width: 1300px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 600; }
+  .brand-crown { width: 30px; height: 30px; }
+  .nav-cta {
+    background: var(--plum); color: var(--cream); border: none; padding: 10px 22px; border-radius: 999px;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 3px solid var(--sky-deep); outline-offset: 2px;
+  }
+
+  .page-head { position: relative; z-index: 5; max-width: 600px; margin: 0 auto; padding: 12px 24px 8px; }
+  .page-head h1 { font-size: 32px; font-weight: 600; margin-bottom: 4px; }
+  .page-head p { color: var(--plum-soft); font-weight: 700; font-size: 14px; }
+
+  .edit-card {
+    position: relative; z-index: 5; max-width: 600px; margin: 24px auto 100px;
+    background: var(--white); border-radius: 28px; padding: 36px;
+    box-shadow: 0 10px 24px rgba(74,59,99,0.08);
+  }
+
+  .avatar-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 28px; }
+  .avatar-preview {
+    width: 110px; height: 110px; border-radius: 50%; overflow: hidden;
+    background: linear-gradient(160deg, var(--lavender), var(--sky));
+    display: flex; align-items: center; justify-content: center; font-size: 40px;
+    box-shadow: 0 8px 20px rgba(74,59,99,0.15); margin-bottom: 14px;
+  }
+  .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar-upload-btn {
+    background: var(--cream); border: none; padding: 9px 18px; border-radius: 999px;
+    font-weight: 800; font-size: 13px; color: var(--plum); cursor: pointer;
+  }
+  .avatar-upload-btn:hover { background: var(--lavender); }
+  #avatarFileInput { display: none; }
+  .avatar-hint { font-size: 11px; color: var(--plum-soft); font-weight: 600; margin-top: 8px; }
+
+  .field { margin-bottom: 20px; }
+  .field label { display: block; font-size: 13px; font-weight: 800; color: var(--plum); margin-bottom: 8px; }
+  .field input, .field textarea {
+    width: 100%; padding: 14px 16px; border-radius: 14px; border: 2px solid #F0EAF8;
+    background: var(--cream); font-family: 'Nunito', sans-serif; font-size: 15px; color: var(--plum);
+    transition: border-color 0.2s; resize: none;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--lavender-deep); }
+  .field input:disabled { color: var(--plum-soft); cursor: not-allowed; }
+  .char-count { text-align: right; font-size: 12px; color: var(--plum-soft); font-weight: 700; margin-top: 4px; }
+
+  .btn-save {
+    width: 100%; background: var(--mint-deep); color: var(--plum); border: none; padding: 15px;
+    border-radius: 14px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px;
+    cursor: pointer; box-shadow: 0 5px 0 #6DC79A; transition: transform 0.12s ease, box-shadow 0.12s ease;
+    margin-top: 8px;
+  }
+  .btn-save:active { transform: translateY(3px); box-shadow: 0 2px 0 #6DC79A; }
+  .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  #statusMsg {
+    display: none; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 13px; margin-bottom: 18px;
+  }
+  #statusMsg.error { background: #FFE3E3; color: #B8433D; display: block; }
+  #statusMsg.success { background: #E3F5EA; color: #2F8F58; display: block; }
+
+  @media (max-width: 650px) {
+    nav, .page-head, .edit-card { padding-left: 24px; padding-right: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+
+<nav>
+  <div class="brand">
+    <svg class="brand-crown" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 28 L4 14 L12 20 L20 8 L28 20 L36 14 L34 28 Z" fill="#FFB98A" stroke="#4A3B63" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="5" y="28" width="30" height="5" rx="2" fill="#FFB98A" stroke="#4A3B63" stroke-width="2"/>
+    </svg>
+    Kingdom
+  </div>
+  <button class="nav-cta" onclick="window.location.href='kingdom-home.html'">Back to home</button>
+</nav>
+
+<div class="page-head">
+  <h1>Edit profile</h1>
+  <p>Update your picture, name, and bio.</p>
+</div>
+
+<div class="edit-card">
+  <div id="statusMsg"></div>
+
+  <div class="avatar-section">
+    <div class="avatar-preview" id="avatarPreview">🙂</div>
+    <button class="avatar-upload-btn" id="uploadBtn">Change photo</button>
+    <input type="file" id="avatarFileInput" accept="image/png, image/jpeg, image/gif, image/webp">
+    <div class="avatar-hint">JPG, PNG, GIF, or WEBP — under 5MB</div>
+  </div>
+
+  <div class="field">
+    <label for="usernameField">Username</label>
+    <input type="text" id="usernameField" disabled>
+  </div>
+
+  <div class="field">
+    <label for="displayNameField">Display name</label>
+    <input type="text" id="displayNameField" maxlength="30" placeholder="What should people call you?">
+  </div>
+
+  <div class="field">
+    <label for="bioField">Bio</label>
+    <textarea id="bioField" rows="4" maxlength="160" placeholder="Tell people about yourself..."></textarea>
+    <div class="char-count"><span id="bioCharCount">0</span>/160</div>
+  </div>
+
+  <button class="btn-save" id="saveBtn">Save changes</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://jswsndzdfplggebjigzd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3NuZHpkZnBsZ2dlYmppZ3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjkxNjYsImV4cCI6MjA5ODc0NTE2Nn0.hsDtuylSBhpmikgSGFZ7YVLgl5ubspYiRu6Al0iswvA';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+<script>
+const KingdomAuth = (() => {
+  async function getCurrentUser() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return null;
+    const { data: profile, error } = await supabaseClient
+      .from('profiles').select('*').eq('id', user.id).single();
+    if (error || !profile) return null;
+    return {
+      id: user.id, email: user.email, username: profile.username,
+      displayName: profile.display_name, bio: profile.bio, avatarUrl: profile.avatar_url
+    };
+  }
+  async function requireAuth(redirectTo) {
+    const user = await getCurrentUser();
+    if (!user) { window.location.href = redirectTo || 'index.html'; return null; }
+    return user;
+  }
+  return { getCurrentUser, requireAuth };
+})();
+</script>
+<script>
+  let currentUser = null;
+  let pendingFile = null;
+
+  const avatarPreview = document.getElementById('avatarPreview');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const fileInput = document.getElementById('avatarFileInput');
+  const usernameField = document.getElementById('usernameField');
+  const displayNameField = document.getElementById('displayNameField');
+  const bioField = document.getElementById('bioField');
+  const bioCharCount = document.getElementById('bioCharCount');
+  const saveBtn = document.getElementById('saveBtn');
+  const statusMsg = document.getElementById('statusMsg');
+
+  function showStatus(msg, type) {
+    statusMsg.textContent = msg;
+    statusMsg.className = type;
+  }
+
+  uploadBtn.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showStatus('That image is too large — please pick one under 5MB.', 'error');
+      return;
+    }
+    pendingFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  bioField.addEventListener('input', () => {
+    bioCharCount.textContent = bioField.value.length;
+  });
+
+  saveBtn.addEventListener('click', async () => {
+    saveBtn.disabled = true;
+    statusMsg.style.display = 'none';
+
+    let avatarUrl = currentUser.avatarUrl || null;
+
+    if (pendingFile) {
+      const ext = pendingFile.name.split('.').pop();
+      const path = `${currentUser.id}/avatar.${ext}`;
+
+      const { error: uploadError } = await supabaseClient.storage
+        .from('avatars')
+        .upload(path, pendingFile, { upsert: true });
+
+      if (uploadError) {
+        saveBtn.disabled = false;
+        showStatus('Image upload failed: ' + uploadError.message, 'error');
+        return;
+      }
+
+      const { data: publicUrlData } = supabaseClient.storage
+        .from('avatars')
+        .getPublicUrl(path);
+
+      // Cache-bust so the new image shows immediately instead of a cached old one
+      avatarUrl = publicUrlData.publicUrl + '?t=' + Date.now();
+    }
+
+    const { error: updateError } = await supabaseClient
+      .from('profiles')
+      .update({
+        display_name: displayNameField.value.trim() || currentUser.username,
+        bio: bioField.value.trim(),
+        avatar_url: avatarUrl
+      })
+      .eq('id', currentUser.id);
+
+    saveBtn.disabled = false;
+
+    if (updateError) {
+      showStatus('Could not save: ' + updateError.message, 'error');
+      return;
+    }
+
+    showStatus('Saved ✓', 'success');
+    pendingFile = null;
+  });
+
+  (async () => {
+    currentUser = await KingdomAuth.requireAuth('index.html');
+    if (!currentUser) return;
+
+    usernameField.value = '@' + currentUser.username;
+    displayNameField.value = currentUser.displayName || '';
+    bioField.value = currentUser.bio || '';
+    bioCharCount.textContent = (currentUser.bio || '').length;
+
+    if (currentUser.avatarUrl) {
+      avatarPreview.innerHTML = `<img src="${currentUser.avatarUrl}" alt="Your avatar">`;
+    }
+  })();
+</script>
+
+</body>
+</html>
