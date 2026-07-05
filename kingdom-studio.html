@@ -138,6 +138,8 @@
     Kingdom Studio
   </div>
   <div class="topbar-actions">
+    <select id="kingdomPicker" style="border:none; background:var(--cream); color:var(--plum); font-family:'Nunito',sans-serif; font-weight:800; font-size:13px; padding:9px 14px; border-radius:999px; cursor:pointer; max-width:160px;"></select>
+    <button class="btn btn-ghost" id="newKingdomBtn">+ New</button>
     <span id="statusMsg"></span>
     <button class="btn btn-ghost" onclick="window.location.href='kingdom-home.html'">Back to home</button>
     <button class="btn btn-primary" id="saveBtn">Save build</button>
@@ -161,6 +163,12 @@
 <div id="blockCount">0 blocks</div>
 
 <div id="canvasWrap"></div>
+
+<div id="scaleControl" style="display:none; position:fixed; bottom:90px; left:50%; transform:translateX(-50%); z-index:20; background:rgba(255,255,255,0.9); backdrop-filter:blur(6px); padding:10px 18px; border-radius:999px; box-shadow:0 8px 24px rgba(74,59,99,0.15); align-items:center; gap:10px; font-size:12px; font-weight:800; color:#4A3B63;">
+  Model size:
+  <input type="range" id="scaleSlider" min="0.00005" max="0.005" step="0.00005" value="0.0033" style="width:160px;">
+  <span id="scaleValue">0.0033</span>
+</div>
 
 <div id="palette">
   <div class="swatch active" style="background:#8FE0B8" data-color="#8FE0B8"></div>
@@ -223,31 +231,35 @@ const KingdomAuth = (() => {
 </script>
 <script>
 const KingdomRealms = (() => {
-  async function getMyRealm(ownerId) {
+  async function getMyRealms(ownerId) {
     const { data, error } = await supabaseClient
-      .from('realms').select('*').eq('owner_id', ownerId).maybeSingle();
+      .from('realms').select('*').eq('owner_id', ownerId).order('created_at', { ascending: true });
+    if (error || !data) return [];
+    return data;
+  }
+  async function getRealmById(id) {
+    const { data, error } = await supabaseClient
+      .from('realms').select('*').eq('id', id).maybeSingle();
     if (error) return null;
     return data;
   }
-  async function ensureRealm(ownerId, displayName) {
-    let realm = await getMyRealm(ownerId);
-    if (realm) return realm;
+  async function createRealm(ownerId, name) {
     const { data, error } = await supabaseClient
       .from('realms')
-      .insert({ owner_id: ownerId, name: displayName + "'s Kingdom", blocks: [] })
+      .insert({ owner_id: ownerId, name: name || 'New Kingdom', blocks: [], character_scale: 0.0033 })
       .select().single();
     if (error) return null;
     return data;
   }
-  async function saveBlocks(ownerId, blocks) {
+  async function saveRealm(realmId, blocks, characterScale) {
     const { error } = await supabaseClient
       .from('realms')
-      .update({ blocks, updated_at: new Date().toISOString() })
-      .eq('owner_id', ownerId);
+      .update({ blocks, character_scale: characterScale, updated_at: new Date().toISOString() })
+      .eq('id', realmId);
     if (error) return { ok: false, error: error.message };
     return { ok: true };
   }
-  return { getMyRealm, ensureRealm, saveBlocks };
+  return { getMyRealms, getRealmById, createRealm, saveRealm };
 })();
 </script>
 
@@ -260,6 +272,7 @@ const KingdomRealms = (() => {
 <script>
   let currentUser = null;
   let myRealm = null;
+  let currentCharacterScale = 0.0033;
   let currentColor = '#8FE0B8';
   let currentTool = 'build'; // build | script | play
   let selectedBlockKey = null;
@@ -399,7 +412,7 @@ const KingdomRealms = (() => {
 
   // ---------- player (placeholder capsule — swap for your model, see loadPlayerModel below) ----------
   const player = new THREE.Group();
-  const playerBodyGeo = new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.35, 0.9, 4, 8) : new THREE.CylinderGeometry(0.35, 0.35, 1.6, 8);
+  const playerBodyGeo = new THREE.CylinderGeometry(0.35, 0.35, 1.6, 8);
   const playerMat = new THREE.MeshStandardMaterial({ color: 0xFF9FC4 });
   const playerMesh = new THREE.Mesh(playerBodyGeo, playerMat);
   playerMesh.position.y = 0.8;
@@ -415,6 +428,7 @@ const KingdomRealms = (() => {
   let playerVelocityY = 0;
   let playerGrounded = false;
   let lastTouchedKey = null;
+  const lastPlayerPosForCamera = new THREE.Vector3();
 
   // ---------- loading your real character model + animation ----------
   let mixer = null;
@@ -422,28 +436,80 @@ const KingdomRealms = (() => {
   let modelLoaded = false;
 
   const fbxLoader = new THREE.FBXLoader();
-  fbxLoader.load(
-    'walking.fbx',
+
+  function showLoadError(msg) {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:9999; background:#FF4444; color:#fff; padding:12px 20px; border-radius:12px; font-family:monospace; font-size:13px; font-weight:bold; max-width:80%; text-align:center;';
+    banner.textContent = msg;
+    document.body.appendChild(banner);
+  }
+
+  if (typeof fflate === 'undefined') {
+    showLoadError('❌ fflate.min.js failed to load from the CDN (check your internet connection or an ad-blocker)');
+  } else if (typeof THREE.FBXLoader === 'undefined') {
+    showLoadError('❌ FBXLoader.js failed to load from the CDN');
+  } else {
+    fbxLoader.load(
+      'walking.fbx',
     (fbx) => {
       // Success — swap out the placeholder capsule for your real model
       player.remove(playerMesh);
 
-      // Mixamo FBX files are usually scaled in centimeters — 0.01 brings
-      // a ~180cm character down to ~1.8 units tall to match the block grid.
-      // Adjust this number if your model looks too big or too small.
-      fbx.scale.set(0.01, 0.01, 0.01);
+      // Mixamo FBX files are usually scaled in centimeters — this uses
+      // whatever scale was last saved for this kingdom (default 0.0033).
+      // Adjust with the slider (bottom of screen) and hit Save build to keep it.
+      fbx.scale.set(currentCharacterScale, currentCharacterScale, currentCharacterScale);
       fbx.position.y = 0; // model's own origin is usually already at its feet
       player.add(fbx);
+      window.loadedCharacterModel = fbx; // exposed so the scale slider can adjust it
+
+      const scaleControl = document.getElementById('scaleControl');
+      const scaleSlider = document.getElementById('scaleSlider');
+      const scaleValue = document.getElementById('scaleValue');
+      scaleSlider.value = currentCharacterScale;
+      scaleValue.textContent = currentCharacterScale.toFixed(4);
+      scaleControl.style.display = 'flex';
+      scaleSlider.addEventListener('input', () => {
+        const s = parseFloat(scaleSlider.value);
+        currentCharacterScale = s;
+        fbx.scale.set(s, s, s);
+        scaleValue.textContent = s.toFixed(4);
+      });
 
       mixer = new THREE.AnimationMixer(fbx);
       if (fbx.animations && fbx.animations.length > 0) {
-        walkAction = mixer.clipAction(fbx.animations[0]);
+        const clip = fbx.animations[0];
+
+        // Mixamo animations often bake in forward motion on the root/hips
+        // bone. Since our own WASD movement already handles walking forward,
+        // we zero out the horizontal (X/Z) part of that root motion here —
+        // otherwise the character visibly drifts forward each loop and then
+        // snaps back to the start position when the clip repeats.
+        clip.tracks.forEach(track => {
+          if (track instanceof THREE.VectorKeyframeTrack && track.name.toLowerCase().endsWith('.position')) {
+            const values = track.values;
+            const baseX = values[0];
+            const baseZ = values[2];
+            for (let i = 0; i < values.length; i += 3) {
+              values[i] = baseX;     // lock X
+              values[i + 2] = baseZ; // lock Z
+              // values[i + 1] (Y) is left alone so any natural up/down bob stays
+            }
+          }
+        });
+
+        walkAction = mixer.clipAction(clip);
         walkAction.play();
         walkAction.paused = true; // start "idle" (frozen) until the player moves
       }
 
       modelLoaded = true;
       console.log('Character model loaded:', fbx);
+      const banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:9999; background:#3ACB7A; color:#0d3b1f; padding:10px 20px; border-radius:12px; font-family:monospace; font-size:13px; font-weight:bold;';
+      banner.textContent = '✅ walking.fbx loaded successfully';
+      document.body.appendChild(banner);
+      setTimeout(() => banner.remove(), 4000);
 
       // ---------- adding a jump animation later ----------
       // Once you have a jump.fbx (either standalone animation or full model),
@@ -461,8 +527,13 @@ const KingdomRealms = (() => {
     undefined,
     (err) => {
       console.warn('Could not load walking.fbx — using placeholder capsule instead.', err);
+      const banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:9999; background:#FF4444; color:#fff; padding:12px 20px; border-radius:12px; font-family:monospace; font-size:13px; font-weight:bold; max-width:80%; text-align:center;';
+      banner.textContent = '❌ Could not load walking.fbx: ' + (err && err.message ? err.message : String(err));
+      document.body.appendChild(banner);
     }
   );
+  }
 
   // ---------- keyboard input ----------
   const keys = {};
@@ -487,6 +558,10 @@ const KingdomRealms = (() => {
         // Spawn above the tallest block near the center, or default height
         player.position.set(0.5, 5, 0.5);
         playerVelocityY = 0;
+        // Start the camera in a nice third-person position behind the player
+        camera.position.set(player.position.x, player.position.y + 3.5, player.position.z + 7);
+        controls.target.copy(player.position);
+        lastPlayerPosForCamera.copy(player.position);
       }
 
       if (currentTool === 'build') {
@@ -674,7 +749,13 @@ const KingdomRealms = (() => {
     }
 
     // Camera follows player (third-person)
-    controls.target.lerp(player.position, 0.15);
+    // Camera follows the player: shift both camera position and orbit
+    // target by however much the player moved this frame. This keeps
+    // whatever angle/zoom you've dragged to, instead of resetting it.
+    const playerDelta = new THREE.Vector3().subVectors(player.position, lastPlayerPosForCamera);
+    camera.position.add(playerDelta);
+    controls.target.add(playerDelta);
+    lastPlayerPosForCamera.copy(player.position);
   }
 
   // ---------- render loop ----------
@@ -709,32 +790,108 @@ const KingdomRealms = (() => {
     }));
   }
 
-  document.getElementById('saveBtn').addEventListener('click', async () => {
-    const status = document.getElementById('statusMsg');
-    status.textContent = 'Saving...';
-    const blocks = serializeBlocks();
-    const result = await KingdomRealms.saveBlocks(currentUser.id, blocks);
-    status.textContent = result.ok ? 'Saved ✓' : 'Error: ' + result.error;
-    setTimeout(() => { status.textContent = ''; }, 2500);
-  });
+  function clearAllBlocks() {
+    Array.from(blockMap.keys()).forEach(k => {
+      const [x, y, z] = k.split(',').map(Number);
+      removeBlock(x, y, z);
+    });
+  }
 
-  // ---------- init ----------
-  (async () => {
-    currentUser = await KingdomAuth.requireAuth('index.html');
-    if (!currentUser) return;
+  function loadRealmIntoScene(realm) {
+    clearAllBlocks();
+    currentCharacterScale = typeof realm.character_scale === 'number' ? realm.character_scale : 0.0033;
 
-    myRealm = await KingdomRealms.ensureRealm(currentUser.id, currentUser.displayName);
-    if (myRealm && Array.isArray(myRealm.blocks) && myRealm.blocks.length > 0) {
-      myRealm.blocks.forEach(b => addBlock(b.x, b.y, b.z, b.color, b.behavior, true));
-      updateBlockCount();
+    if (window.loadedCharacterModel) {
+      window.loadedCharacterModel.scale.set(currentCharacterScale, currentCharacterScale, currentCharacterScale);
+    }
+    const scaleSliderEl = document.getElementById('scaleSlider');
+    const scaleValueEl = document.getElementById('scaleValue');
+    if (scaleSliderEl) { scaleSliderEl.value = currentCharacterScale; }
+    if (scaleValueEl) { scaleValueEl.textContent = currentCharacterScale.toFixed(4); }
+
+    if (Array.isArray(realm.blocks) && realm.blocks.length > 0) {
+      realm.blocks.forEach(b => addBlock(b.x, b.y, b.z, b.color, b.behavior, true));
     } else {
       for (let x = -3; x <= 3; x++) {
         for (let z = -3; z <= 3; z++) {
           addBlock(x, 0, z, '#8FE0B8', { type: 'none' }, true);
         }
       }
-      updateBlockCount();
     }
+    updateBlockCount();
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    if (!myRealm) return;
+    const status = document.getElementById('statusMsg');
+    status.textContent = 'Saving...';
+    const blocks = serializeBlocks();
+    const result = await KingdomRealms.saveRealm(myRealm.id, blocks, currentCharacterScale);
+    status.textContent = result.ok ? 'Saved ✓' : 'Error: ' + result.error;
+    setTimeout(() => { status.textContent = ''; }, 2500);
+  });
+
+  // ---------- kingdom picker ----------
+  let myRealms = [];
+  const kingdomPicker = document.getElementById('kingdomPicker');
+
+  function renderKingdomPicker() {
+    kingdomPicker.innerHTML = '';
+    myRealms.forEach(realm => {
+      const opt = document.createElement('option');
+      opt.value = realm.id;
+      opt.textContent = realm.name;
+      kingdomPicker.appendChild(opt);
+    });
+    kingdomPicker.value = myRealm ? myRealm.id : '';
+  }
+
+  kingdomPicker.addEventListener('change', () => {
+    const realm = myRealms.find(r => r.id === kingdomPicker.value);
+    if (!realm) return;
+    myRealm = realm;
+    loadRealmIntoScene(myRealm);
+    updateUrlForRealm(myRealm.id);
+  });
+
+  document.getElementById('newKingdomBtn').addEventListener('click', async () => {
+    const name = prompt('Name your new kingdom:', 'New Kingdom');
+    if (!name) return;
+    const realm = await KingdomRealms.createRealm(currentUser.id, name);
+    if (!realm) return;
+    myRealms.push(realm);
+    myRealm = realm;
+    renderKingdomPicker();
+    loadRealmIntoScene(myRealm);
+    updateUrlForRealm(myRealm.id);
+  });
+
+  function updateUrlForRealm(realmId) {
+    const url = new URL(window.location);
+    url.searchParams.set('realm', realmId);
+    window.history.replaceState({}, '', url);
+  }
+
+  // ---------- init ----------
+  (async () => {
+    currentUser = await KingdomAuth.requireAuth('index.html');
+    if (!currentUser) return;
+
+    myRealms = await KingdomRealms.getMyRealms(currentUser.id);
+
+    if (myRealms.length === 0) {
+      const realm = await KingdomRealms.createRealm(currentUser.id, currentUser.displayName + "'s Kingdom");
+      if (realm) myRealms = [realm];
+    }
+
+    // If a specific kingdom was linked to (e.g. ?realm=abc123), open that one
+    const params = new URLSearchParams(window.location.search);
+    const requestedId = params.get('realm');
+    myRealm = (requestedId && myRealms.find(r => r.id === requestedId)) || myRealms[0];
+
+    renderKingdomPicker();
+    loadRealmIntoScene(myRealm);
+    updateUrlForRealm(myRealm.id);
   })();
 </script>
 

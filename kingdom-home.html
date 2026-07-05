@@ -49,12 +49,14 @@
     border: 3px solid var(--white);
     display: flex; align-items: center; justify-content: center;
     font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(74,59,99,0.12);
+    /* PLACEHOLDER: replace inner content with <img src="my-avatar.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
   }
 
   a:focus-visible, button:focus-visible, input:focus-visible {
     outline: 3px solid var(--sky-deep); outline-offset: 2px;
   }
 
+  /* ---------- layout ---------- */
   .home-layout {
     position: relative; z-index: 5; max-width: 1300px; margin: 0 auto;
     padding: 12px 48px 100px;
@@ -68,6 +70,7 @@
   }
   .panel h2 { font-size: 17px; font-weight: 700; font-family: 'Nunito', sans-serif; margin-bottom: 16px; }
 
+  /* ---------- profile card ---------- */
   .profile-card {
     background: linear-gradient(160deg, var(--lavender), var(--sky));
     border-radius: 24px; padding: 28px 24px; text-align: center;
@@ -77,6 +80,8 @@
     background: var(--white); border: 4px solid var(--white);
     display: flex; align-items: center; justify-content: center; font-size: 36px;
     box-shadow: 0 8px 20px rgba(74,59,99,0.15);
+    /* PLACEHOLDER: replace inner content with
+       <img src="my-avatar.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
   }
   .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
   .profile-handle { font-size: 13px; color: var(--plum); opacity: 0.7; font-weight: 700; margin-bottom: 16px; }
@@ -93,16 +98,37 @@
   }
 
   .kingdom-card { margin-top: 18px; }
+  .kingdom-card h2 { margin-bottom: 12px; }
+  .kingdom-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid #F0EAF8;
+  }
+  .kingdom-row:last-child { border-bottom: none; }
+  .kingdom-row-thumb {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    background: repeating-linear-gradient(135deg, var(--lavender) 0 8px, var(--sky) 8px 16px);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .kingdom-row-info { flex: 1; min-width: 0; }
+  .kingdom-row-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kingdom-row-desc { font-size: 12px; color: var(--plum-soft); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kingdom-row-edit {
+    background: var(--cream); border: none; padding: 7px 14px; border-radius: 999px;
+    font-weight: 800; font-size: 12px; color: var(--plum); cursor: pointer; flex-shrink: 0;
+  }
+  .no-kingdoms { text-align: center; padding: 20px 10px; color: var(--plum-soft); font-size: 13px; font-weight: 700; }
   .kingdom-card .thumb {
     width: 100%; aspect-ratio: 16/9; border-radius: 14px; margin-bottom: 10px;
     border: 3px dashed var(--lavender-deep);
     background: repeating-linear-gradient(135deg, var(--lavender) 0 14px, var(--sky) 14px 28px);
     display: flex; align-items: center; justify-content: center;
     font-size: 12px; font-weight: 800; color: var(--plum); text-align: center; padding: 8px;
+    /* PLACEHOLDER: replace with <img src="my-kingdom.png" style="width:100%;height:100%;object-fit:cover;border-radius:14px;"> */
   }
   .kingdom-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
   .kingdom-card p { font-size: 12px; color: var(--plum-soft); font-weight: 700; }
 
+  /* ---------- feed ---------- */
   .feed-item {
     display: flex; gap: 14px; padding: 14px 0;
     border-bottom: 1px solid #F0EAF8;
@@ -111,6 +137,7 @@
   .feed-avatar {
     width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
     background: var(--peach); display: flex; align-items: center; justify-content: center; font-size: 18px;
+    /* PLACEHOLDER: friend/activity avatar image goes here */
   }
   .feed-text { font-size: 14px; line-height: 1.5; }
   .feed-text strong { font-weight: 800; }
@@ -126,6 +153,7 @@
   .quick-btn:hover { background: var(--lavender); transform: translateY(-2px); }
   .quick-btn .icon { font-size: 20px; }
 
+  /* ---------- friends list ---------- */
   .friends-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
   .friends-tab {
     flex: 1; text-align: center; background: var(--cream); border: none; padding: 9px 0;
@@ -140,6 +168,7 @@
   .friend-avatar {
     width: 40px; height: 40px; border-radius: 50%; position: relative; flex-shrink: 0;
     background: var(--sky); display: flex; align-items: center; justify-content: center; font-size: 16px;
+    /* PLACEHOLDER: replace inner content with <img src="friend.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
   }
   .status-dot {
     width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--white);
@@ -163,6 +192,7 @@
   }
   .add-friend-btn:hover { border-color: var(--peach-deep); color: var(--plum); }
 
+  /* ---------- friend requests & search results ---------- */
   .request-row, .result-row {
     display: flex; align-items: center; gap: 10px; padding: 8px 0;
   }
@@ -211,7 +241,7 @@
     Kingdom
   </div>
   <ul class="nav-links">
-    <li><a href="#" class="active">Home</a></li>
+    <li><a href="kingdom-home.html" class="active">Home</a></li>
     <li><a href="#">Explore</a></li>
     <li><a href="kingdom-create.html">Create</a></li>
   </ul>
@@ -223,6 +253,7 @@
 
 <div class="home-layout">
 
+  <!-- ---------- left: profile ---------- -->
   <div>
     <div class="profile-card">
       <div class="profile-pic">🙂</div>
@@ -237,25 +268,15 @@
     </div>
 
     <div class="panel kingdom-card" id="realmCard">
-      <h2>Your kingdom</h2>
-
-      <div id="realmCreateForm" style="display:none;">
-        <input type="text" id="realmNameInput" placeholder="Name your realm..." maxlength="40"
-               style="width:100%; padding:11px 14px; border-radius:12px; border:2px solid #F0EAF8; background:var(--cream); font-family:'Nunito',sans-serif; font-size:14px; color:var(--plum); margin-bottom:8px;">
-        <textarea id="realmDescInput" placeholder="Describe your kingdom (optional)" maxlength="140" rows="2"
-               style="width:100%; padding:11px 14px; border-radius:12px; border:2px solid #F0EAF8; background:var(--cream); font-family:'Nunito',sans-serif; font-size:13px; color:var(--plum); margin-bottom:10px; resize:none;"></textarea>
-        <button class="btn-edit" id="createRealmBtn" style="width:100%; background:var(--mint-deep);">Create my kingdom</button>
-      </div>
-
-      <div id="realmDisplay" style="display:none;">
-        <div class="thumb">🏰</div>
-        <h3 id="realmNameDisplay"></h3>
-        <p id="realmDescDisplay"></p>
-        <button class="btn-edit" id="editRealmBtn" style="margin-top:10px;">Edit</button>
-      </div>
+      <h2>Your kingdoms</h2>
+      <div id="kingdomsList"></div>
+      <button class="btn-edit" style="margin-top:10px; width:100%; background:var(--mint-deep);" id="newKingdomHomeBtn">
+        + New kingdom
+      </button>
     </div>
   </div>
 
+  <!-- ---------- middle: feed ---------- -->
   <div class="panel">
     <h2>What's happening</h2>
     <div class="quick-actions">
@@ -271,6 +292,7 @@
     </div>
   </div>
 
+  <!-- ---------- right: friends ---------- -->
   <div class="panel">
     <h2>Friends</h2>
 
@@ -304,12 +326,22 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* Kingdom — Supabase config
+   Fill these in from your Supabase project:
+   Project Settings → API → Project URL / anon public key */
+
 const SUPABASE_URL = 'https://jswsndzdfplggebjigzd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3NuZHpkZnBsZ2dlYmppZ3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjkxNjYsImV4cCI6MjA5ODc0NTE2Nn0.hsDtuylSBhpmikgSGFZ7YVLgl5ubspYiRu6Al0iswvA';
 
+// Single shared Supabase client used by kingdom-auth.js and kingdom-friends.js
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 </script>
 <script>
+/* Kingdom — real auth, backed by Supabase.
+   Requires kingdom-config.js (defines supabaseClient) to be loaded first,
+   and the Supabase JS library script tag loaded before that. */
+
 const KingdomAuth = (() => {
 
   async function signUp({ email, password, username, displayName, birthday }) {
@@ -323,6 +355,7 @@ const KingdomAuth = (() => {
       return { ok: false, error: 'Password must be at least 8 characters.' };
     }
 
+    // 1. Create the auth account
     const { data, error } = await supabaseClient.auth.signUp({ email, password });
     if (error) {
       return { ok: false, error: error.message };
@@ -331,6 +364,7 @@ const KingdomAuth = (() => {
       return { ok: false, error: 'Something went wrong creating your account.' };
     }
 
+    // 2. Create their profile row (username, display name, etc.)
     const { error: profileError } = await supabaseClient.from('profiles').insert({
       id: data.user.id,
       username,
@@ -345,6 +379,7 @@ const KingdomAuth = (() => {
       return { ok: false, error: profileError.message };
     }
 
+    // If email confirmation is required, there won't be a session yet
     if (!data.session) {
       return {
         ok: true,
@@ -390,6 +425,8 @@ const KingdomAuth = (() => {
     };
   }
 
+  // Redirects to the landing page if nobody is logged in. Call at the top
+  // of any "members only" page. Returns the current user (or null).
   async function requireAuth(redirectTo) {
     const user = await getCurrentUser();
     if (!user) {
@@ -401,14 +438,19 @@ const KingdomAuth = (() => {
 
   return { signUp, logIn, logOut, getCurrentUser, requireAuth };
 })();
+
 </script>
 <script>
+/* Kingdom — real friends system, backed by Supabase.
+   Requires kingdom-config.js (defines supabaseClient) to be loaded first. */
+
 const KingdomFriends = (() => {
 
   function sortedPair(a, b) {
     return a < b ? [a, b] : [b, a];
   }
 
+  // Search other users by username or display name (excludes yourself)
   async function searchUsers(query, myId) {
     query = (query || '').trim();
     if (!query) return [];
@@ -441,6 +483,7 @@ const KingdomFriends = (() => {
     const alreadyFriends = await areFriends(fromId, toId);
     if (alreadyFriends) return { ok: false, error: 'Already friends.' };
 
+    // If they already requested you, accept instead of duplicating
     const { data: theirRequest } = await supabaseClient
       .from('friend_requests')
       .select('id')
@@ -493,6 +536,7 @@ const KingdomFriends = (() => {
       .from('friendships')
       .insert({ user_a: a, user_b: b });
 
+    // Ignore "already exists" errors, otherwise bubble up
     if (insertError && insertError.code !== '23505') {
       return { ok: false, error: insertError.message };
     }
@@ -550,45 +594,31 @@ const KingdomFriends = (() => {
     areFriends
   };
 })();
+
 </script>
 <script>
+/* Kingdom — realms, backed by Supabase. Requires supabaseClient (already
+   created above) to exist before this runs. */
+
 const KingdomRealms = (() => {
 
-  async function getMyRealm(ownerId) {
+  async function getMyRealms(ownerId) {
     const { data, error } = await supabaseClient
       .from('realms')
       .select('*')
       .eq('owner_id', ownerId)
-      .maybeSingle();
-    if (error) return null;
+      .order('created_at', { ascending: true });
+    if (error || !data) return [];
     return data;
   }
 
-  async function createRealm(ownerId, name, description) {
+  async function createRealm(ownerId, name) {
     name = (name || '').trim();
     if (!name) return { ok: false, error: 'Give your kingdom a name.' };
 
     const { data, error } = await supabaseClient
       .from('realms')
-      .insert({ owner_id: ownerId, name, description: (description || '').trim() })
-      .select()
-      .single();
-
-    if (error) {
-      if (error.code === '23505') return { ok: false, error: 'You already have a realm.' };
-      return { ok: false, error: error.message };
-    }
-    return { ok: true, realm: data };
-  }
-
-  async function updateRealm(ownerId, name, description) {
-    name = (name || '').trim();
-    if (!name) return { ok: false, error: 'Give your kingdom a name.' };
-
-    const { data, error } = await supabaseClient
-      .from('realms')
-      .update({ name, description: (description || '').trim(), updated_at: new Date().toISOString() })
-      .eq('owner_id', ownerId)
+      .insert({ owner_id: ownerId, name, blocks: [], character_scale: 0.0033 })
       .select()
       .single();
 
@@ -596,17 +626,9 @@ const KingdomRealms = (() => {
     return { ok: true, realm: data };
   }
 
-  async function getAllRealms() {
-    const { data, error } = await supabaseClient
-      .from('realms')
-      .select('id, name, description, owner_id, created_at')
-      .order('created_at', { ascending: false });
-    if (error || !data) return [];
-    return data;
-  }
-
-  return { getMyRealm, createRealm, updateRealm, getAllRealms };
+  return { getMyRealms, createRealm };
 })();
+
 </script>
 <script>
   let currentUser = null;
@@ -617,10 +639,12 @@ const KingdomRealms = (() => {
     return div.innerHTML;
   }
 
+  // ---------- friends: render ----------
   async function renderFriends() {
     if (!currentUser) return;
     const myId = currentUser.id;
 
+    // Incoming requests
     const incoming = await KingdomFriends.getIncomingRequests(myId);
     const incomingBox = document.getElementById('incomingRequestsBox');
     const incomingList = document.getElementById('incomingRequestsList');
@@ -650,6 +674,7 @@ const KingdomRealms = (() => {
       incomingBox.style.display = 'none';
     }
 
+    // Friends list
     const friends = await KingdomFriends.getFriends(myId);
     document.getElementById('friendCount').textContent = friends.length;
     const emptyState = document.getElementById('friendsEmptyState');
@@ -680,6 +705,7 @@ const KingdomRealms = (() => {
     }
   }
 
+  // ---------- friends: add-friend search panel ----------
   const addFriendToggle = document.getElementById('addFriendToggle');
   const addFriendPanel = document.getElementById('addFriendPanel');
   const friendSearchInput = document.getElementById('friendSearchInput');
@@ -726,48 +752,52 @@ const KingdomRealms = (() => {
     });
   });
 
+  // ---------- realm: render ----------
   async function renderRealm() {
     if (!currentUser) return;
-    const realm = await KingdomRealms.getMyRealm(currentUser.id);
-    const createForm = document.getElementById('realmCreateForm');
-    const display = document.getElementById('realmDisplay');
+    const realms = await KingdomRealms.getMyRealms(currentUser.id);
+    const listEl = document.getElementById('kingdomsList');
+    listEl.innerHTML = '';
 
-    if (realm) {
-      createForm.style.display = 'none';
-      display.style.display = 'block';
-      document.getElementById('realmNameDisplay').textContent = realm.name;
-      document.getElementById('realmDescDisplay').textContent = realm.description || 'No description yet.';
-      document.getElementById('editRealmBtn').onclick = () => {
-        createForm.style.display = 'block';
-        display.style.display = 'none';
-        document.getElementById('realmNameInput').value = realm.name;
-        document.getElementById('realmDescInput').value = realm.description || '';
-        document.getElementById('createRealmBtn').textContent = 'Save changes';
-        document.getElementById('createRealmBtn').onclick = async () => {
-          const name = document.getElementById('realmNameInput').value;
-          const desc = document.getElementById('realmDescInput').value;
-          const res = await KingdomRealms.updateRealm(currentUser.id, name, desc);
-          if (res.ok) renderRealm();
-          else alert(res.error);
-        };
-      };
-    } else {
-      createForm.style.display = 'block';
-      display.style.display = 'none';
-      document.getElementById('createRealmBtn').textContent = 'Create my kingdom';
-      document.getElementById('createRealmBtn').onclick = async () => {
-        const name = document.getElementById('realmNameInput').value;
-        const desc = document.getElementById('realmDescInput').value;
-        const res = await KingdomRealms.createRealm(currentUser.id, name, desc);
-        if (res.ok) renderRealm();
-        else alert(res.error);
-      };
+    if (realms.length === 0) {
+      listEl.innerHTML = '<div class="no-kingdoms">No kingdoms yet — create your first one below.</div>';
+      return;
     }
+
+    realms.forEach(realm => {
+      const row = document.createElement('div');
+      row.className = 'kingdom-row';
+      const blockCount = Array.isArray(realm.blocks) ? realm.blocks.length : 0;
+      row.innerHTML = `
+        <div class="kingdom-row-thumb">🏰</div>
+        <div class="kingdom-row-info">
+          <div class="kingdom-row-name">${escapeHtml(realm.name)}</div>
+          <div class="kingdom-row-desc">${blockCount} block${blockCount === 1 ? '' : 's'}</div>
+        </div>
+        <button class="kingdom-row-edit">Edit</button>
+      `;
+      row.querySelector('.kingdom-row-edit').addEventListener('click', () => {
+        window.location.href = 'kingdom-studio.html?realm=' + encodeURIComponent(realm.id);
+      });
+      listEl.appendChild(row);
+    });
   }
 
+  document.getElementById('newKingdomHomeBtn').addEventListener('click', async () => {
+    const name = prompt('Name your new kingdom:', 'New Kingdom');
+    if (!name) return;
+    const result = await KingdomRealms.createRealm(currentUser.id, name);
+    if (result.ok) {
+      window.location.href = 'kingdom-studio.html?realm=' + encodeURIComponent(result.realm.id);
+    } else {
+      alert(result.error);
+    }
+  });
+
+  // ---------- page init ----------
   (async () => {
     currentUser = await KingdomAuth.requireAuth('index.html');
-    if (!currentUser) return;
+    if (!currentUser) return; // requireAuth already redirected
 
     document.getElementById('profileName').textContent = currentUser.displayName;
     document.getElementById('profileHandle').textContent = '@' + currentUser.username;
