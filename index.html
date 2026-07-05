@@ -242,8 +242,8 @@
     Kingdom
   </div>
   <ul class="nav-links">
-    <li><a href="kingdom-catalog.html">Explore</a></li>
-    <li><a href="kingdom-avatar-builder.html">Create</a></li>
+    <li><a href="#">Explore</a></li>
+    <li><a href="#">Create</a></li>
     <li><a href="#">Community</a></li>
   </ul>
   <button class="nav-cta" onclick="document.getElementById('authCard').scrollIntoView({behavior:'smooth'})">Get started</button>
@@ -311,6 +311,10 @@
         <input type="text" id="displayName" placeholder="What should we call your ruler?">
       </div>
       <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@example.com">
+      </div>
+      <div class="field">
         <label for="username">Username</label>
         <input type="text" id="username" placeholder="e.g. moss_ruler">
       </div>
@@ -336,7 +340,167 @@
   </div>
 </section>
 
-<script src="kingdom-auth.js"></script>
+<script>
+  window.addEventListener('error', (e) => {
+    alert('PAGE ERROR:\n\n' + e.message);
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    alert('PROMISE ERROR:\n\n' + (e.reason && e.reason.message ? e.reason.message : String(e.reason)));
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* Kingdom — Supabase config
+   Fill these in from your Supabase project:
+   Project Settings → API → Project URL / anon public key */
+
+const SUPABASE_URL = 'https://jswsndzdfplggebjigzd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3NuZHpkZnBsZ2dlYmppZ3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjkxNjYsImV4cCI6MjA5ODc0NTE2Nn0.hsDtuylSBhpmikgSGFZ7YVLgl5ubspYiRu6Al0iswvA';
+
+// Single shared Supabase client used by kingdom-auth.js and kingdom-friends.js
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+</script>
+<script>
+  // Automatic connection status banner — runs immediately, no clicking needed
+  (function() {
+    const banner = document.createElement('div');
+    banner.id = 'debugBanner';
+    banner.style.cssText = 'position:fixed; top:0; left:0; right:0; z-index:9999; padding:10px 16px; font-family:monospace; font-size:13px; font-weight:bold; text-align:center;';
+    document.body.appendChild(banner);
+
+    try {
+      if (typeof window.supabase === 'undefined') {
+        banner.style.background = '#FF4444';
+        banner.style.color = '#fff';
+        banner.textContent = '❌ Supabase library did not load from the CDN (network/adblocker issue)';
+        return;
+      }
+      if (typeof supabaseClient === 'undefined') {
+        banner.style.background = '#FF4444';
+        banner.style.color = '#fff';
+        banner.textContent = '❌ supabaseClient was not created — check the config script';
+        return;
+      }
+      if (SUPABASE_URL.includes('PASTE_YOUR')) {
+        banner.style.background = '#FF4444';
+        banner.style.color = '#fff';
+        banner.textContent = '❌ SUPABASE_URL is still the placeholder text — keys were not saved';
+        return;
+      }
+      banner.style.background = '#3ACB7A';
+      banner.style.color = '#0d3b1f';
+      banner.textContent = '✅ Supabase connected: ' + SUPABASE_URL;
+    } catch (err) {
+      banner.style.background = '#FF4444';
+      banner.style.color = '#fff';
+      banner.textContent = '❌ Error during setup: ' + err.message;
+    }
+  })();
+</script>
+<script>
+/* Kingdom — real auth, backed by Supabase.
+   Requires kingdom-config.js (defines supabaseClient) to be loaded first,
+   and the Supabase JS library script tag loaded before that. */
+
+const KingdomAuth = (() => {
+
+  async function signUp({ email, password, username, displayName, birthday }) {
+    username = (username || '').trim().toLowerCase();
+    email = (email || '').trim();
+
+    if (!email || !password || !username) {
+      return { ok: false, error: 'Fill in email, username, and password.' };
+    }
+    if (password.length < 8) {
+      return { ok: false, error: 'Password must be at least 8 characters.' };
+    }
+
+    // 1. Create the auth account
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) {
+      return { ok: false, error: error.message };
+    }
+    if (!data.user) {
+      return { ok: false, error: 'Something went wrong creating your account.' };
+    }
+
+    // 2. Create their profile row (username, display name, etc.)
+    const { error: profileError } = await supabaseClient.from('profiles').insert({
+      id: data.user.id,
+      username,
+      display_name: displayName || username,
+      birthday: birthday || null
+    });
+
+    if (profileError) {
+      if (profileError.message.includes('duplicate') || profileError.code === '23505') {
+        return { ok: false, error: 'That username is already taken.' };
+      }
+      return { ok: false, error: profileError.message };
+    }
+
+    // If email confirmation is required, there won't be a session yet
+    if (!data.session) {
+      return {
+        ok: true,
+        needsConfirmation: true,
+        message: 'Account created! Check your email to confirm before logging in.'
+      };
+    }
+
+    return { ok: true, username };
+  }
+
+  async function logIn({ email, password }) {
+    email = (email || '').trim();
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) {
+      return { ok: false, error: 'Incorrect email or password.' };
+    }
+    return { ok: true, user: data.user };
+  }
+
+  async function logOut() {
+    await supabaseClient.auth.signOut();
+  }
+
+  async function getCurrentUser() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return null;
+
+    const { data: profile, error } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !profile) return null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: profile.username,
+      displayName: profile.display_name,
+      birthday: profile.birthday
+    };
+  }
+
+  // Redirects to the landing page if nobody is logged in. Call at the top
+  // of any "members only" page. Returns the current user (or null).
+  async function requireAuth(redirectTo) {
+    const user = await getCurrentUser();
+    if (!user) {
+      window.location.href = redirectTo || 'index.html';
+      return null;
+    }
+    return user;
+  }
+
+  return { signUp, logIn, logOut, getCurrentUser, requireAuth };
+})();
+
+</script>
 <script>
   function setMode(mode) {
     const card = document.getElementById('authCardInner');
@@ -362,33 +526,55 @@
   function hideError() {
     document.getElementById('authError').style.display = 'none';
   }
+  function showNotice(msg) {
+    const box = document.getElementById('authError');
+    box.style.background = '#E3F5EA';
+    box.style.color = '#2F8F58';
+    box.textContent = msg;
+    box.style.display = 'block';
+  }
 
-  document.getElementById('authForm').addEventListener('submit', (e) => {
+  document.getElementById('authForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     hideError();
 
-    const isSignup = document.getElementById('authCardInner').classList.contains('mode-signup');
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+    const submitBtn = e.target.querySelector('.auth-submit');
+    submitBtn.disabled = true;
 
-    if (isSignup) {
-      const displayName = document.getElementById('displayName').value;
-      const birthday = document.getElementById('birthday').value;
-      const result = KingdomAuth.signUp({ username, password, displayName, birthday });
-      if (!result.ok) return showError(result.error);
-      window.location.href = 'kingdom-home.html';
-    } else {
-      const result = KingdomAuth.logIn({ username, password });
-      if (!result.ok) return showError(result.error);
-      window.location.href = 'kingdom-home.html';
+    try {
+      const isSignup = document.getElementById('authCardInner').classList.contains('mode-signup');
+      const email = document.getElementById('email').value;
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      if (isSignup) {
+        const displayName = document.getElementById('displayName').value;
+        const birthday = document.getElementById('birthday').value;
+        const result = await KingdomAuth.signUp({ email, username, password, displayName, birthday });
+        submitBtn.disabled = false;
+        if (!result.ok) return showError(result.error);
+        if (result.needsConfirmation) return showNotice(result.message);
+        window.location.href = 'kingdom-home.html';
+      } else {
+        const result = await KingdomAuth.logIn({ email, password });
+        submitBtn.disabled = false;
+        if (!result.ok) return showError(result.error);
+        window.location.href = 'kingdom-home.html';
+      }
+    } catch (err) {
+      submitBtn.disabled = false;
+      alert('SIGNUP/LOGIN ERROR:\n\n' + (err && err.message ? err.message : String(err)));
     }
   });
 
   // If already logged in, skip straight to home
-  if (KingdomAuth.getCurrentUser()) {
-    // Comment out the next line if you want to be able to view this page while logged in
-    // window.location.href = 'kingdom-home.html';
-  }
+  (async () => {
+    const user = await KingdomAuth.getCurrentUser();
+    if (user) {
+      // Comment out the next line if you want to be able to view this page while logged in
+      // window.location.href = 'kingdom-home.html';
+    }
+  })();
 </script>
 
 </body>

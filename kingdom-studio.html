@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kingdom — Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lavender: #EAD9FF; --lavender-deep: #C9A6FF;
+    --mint: #C7F5DE; --mint-deep: #8FE0B8;
+    --peach: #FFD9BE; --peach-deep: #FFB98A;
+    --sky: #C3E7FF; --sky-deep: #8FCCF5;
+    --plum: #4A3B63; --plum-soft: #7A6B94;
+    --cream: #F6F0FC; --white: #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--plum); overflow: hidden; }
+  h1, .brand { font-family: 'Fredoka', sans-serif; }
+
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; background: rgba(255,255,255,0.9); backdrop-filter: blur(6px);
+    box-shadow: 0 2px 12px rgba(74,59,99,0.08);
+  }
+  .brand { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 600; }
+  .brand-crown { width: 24px; height: 24px; }
+
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .btn {
+    border: none; border-radius: 999px; font-family: 'Nunito', sans-serif; font-weight: 800;
+    font-size: 13px; padding: 9px 18px; cursor: pointer; transition: transform 0.12s ease;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--mint-deep); color: var(--plum); }
+  .btn-ghost { background: var(--white); color: var(--plum); box-shadow: 0 2px 8px rgba(74,59,99,0.1); }
+
+  #statusMsg { font-size: 12px; font-weight: 700; color: var(--plum-soft); min-width: 90px; }
+
+  #canvasWrap { position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
+  canvas { display: block; }
+
+  #toolbar {
+    position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 20;
+    display: flex; gap: 6px; background: rgba(255,255,255,0.9); backdrop-filter: blur(6px);
+    padding: 6px; border-radius: 999px; box-shadow: 0 4px 16px rgba(74,59,99,0.1);
+  }
+  .tool-btn {
+    border: none; background: transparent; padding: 9px 18px; border-radius: 999px;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; cursor: pointer; color: var(--plum-soft);
+    transition: all 0.2s ease;
+  }
+  .tool-btn.active { background: var(--plum); color: var(--cream); }
+
+  #palette {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 20;
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(6px);
+    padding: 12px 18px; border-radius: 999px; box-shadow: 0 8px 24px rgba(74,59,99,0.15);
+  }
+  .swatch {
+    width: 34px; height: 34px; border-radius: 10px; cursor: pointer;
+    border: 3px solid transparent; transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .swatch:hover { transform: scale(1.1); }
+  .swatch.active { border-color: var(--plum); }
+
+  #helpBox {
+    position: fixed; top: 130px; left: 24px; z-index: 20;
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(6px);
+    padding: 14px 18px; border-radius: 16px; font-size: 12px; font-weight: 700; color: var(--plum-soft);
+    box-shadow: 0 4px 16px rgba(74,59,99,0.1); max-width: 240px; line-height: 1.6;
+  }
+  #helpBox strong { color: var(--plum); }
+
+  #blockCount {
+    position: fixed; top: 70px; right: 24px; z-index: 20;
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(6px);
+    padding: 10px 18px; border-radius: 999px; font-size: 13px; font-weight: 800; color: var(--plum);
+    box-shadow: 0 4px 16px rgba(74,59,99,0.1);
+  }
+
+  #scriptPanel {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 380px; z-index: 30;
+    background: var(--white); box-shadow: -8px 0 24px rgba(74,59,99,0.15);
+    padding: 24px; overflow-y: auto; transform: translateX(100%); transition: transform 0.25s ease;
+  }
+  #scriptPanel.open { transform: translateX(0); }
+  #scriptPanel h3 { font-family: 'Fredoka', sans-serif; font-size: 20px; margin-bottom: 4px; }
+  #scriptPanel .sub { font-size: 12px; color: var(--plum-soft); font-weight: 700; margin-bottom: 20px; }
+  #scriptPanel .close-btn {
+    position: absolute; top: 20px; right: 20px; background: var(--cream); border: none;
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 14px;
+  }
+
+  .behavior-option {
+    display: block; width: 100%; text-align: left; padding: 12px 14px; margin-bottom: 8px;
+    border-radius: 12px; border: 2px solid #F0EAF8; background: var(--cream);
+    font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 13px; color: var(--plum); cursor: pointer;
+  }
+  .behavior-option.active { border-color: var(--lavender-deep); background: var(--lavender); }
+
+  #customCodeArea { display: none; margin-top: 12px; }
+  #codeInput {
+    width: 100%; height: 160px; padding: 12px; border-radius: 12px; border: 2px solid #F0EAF8;
+    background: #2B2438; color: #E8DFFA; font-family: 'Fira Code', monospace; font-size: 12px;
+    resize: vertical; line-height: 1.5;
+  }
+  #codeInput:focus { outline: none; border-color: var(--lavender-deep); }
+  .code-hint { font-size: 11px; color: var(--plum-soft); font-weight: 600; margin-top: 8px; line-height: 1.5; }
+  .code-hint code { background: var(--cream); padding: 1px 5px; border-radius: 4px; }
+
+  #applyScriptBtn {
+    width: 100%; margin-top: 16px; background: var(--mint-deep); color: var(--plum); border: none;
+    padding: 13px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+  #scriptStatus { font-size: 12px; font-weight: 700; margin-top: 10px; text-align: center; }
+  #scriptStatus.error { color: #B8433D; }
+  #scriptStatus.success { color: #2F8F58; }
+
+  #playBanner {
+    display: none; position: fixed; top: 130px; left: 24px; z-index: 20;
+    background: var(--peach-deep); color: var(--plum); padding: 8px 20px; border-radius: 999px;
+    font-weight: 800; font-size: 12px; box-shadow: 0 4px 16px rgba(74,59,99,0.15);
+  }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="brand">
+    <svg class="brand-crown" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 28 L4 14 L12 20 L20 8 L28 20 L36 14 L34 28 Z" fill="#FFB98A" stroke="#4A3B63" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="5" y="28" width="30" height="5" rx="2" fill="#FFB98A" stroke="#4A3B63" stroke-width="2"/>
+    </svg>
+    Kingdom Studio
+  </div>
+  <div class="topbar-actions">
+    <span id="statusMsg"></span>
+    <button class="btn btn-ghost" onclick="window.location.href='kingdom-home.html'">Back to home</button>
+    <button class="btn btn-primary" id="saveBtn">Save build</button>
+  </div>
+</div>
+
+<div id="toolbar">
+  <button class="tool-btn active" data-tool="build">🧱 Build</button>
+  <button class="tool-btn" data-tool="script">📜 Script</button>
+  <button class="tool-btn" data-tool="play">▶ Play</button>
+</div>
+
+<div id="helpBox">
+  <span id="helpText"><strong>Left-click</strong> a face to place a block<br>
+  <strong>Right-click</strong> a block to remove it<br>
+  <strong>Drag</strong> to orbit, <strong>scroll</strong> to zoom</span>
+</div>
+
+<div id="playBanner">▶ WASD to move, Space to jump, drag to look around</div>
+
+<div id="blockCount">0 blocks</div>
+
+<div id="canvasWrap"></div>
+
+<div id="palette">
+  <div class="swatch active" style="background:#8FE0B8" data-color="#8FE0B8"></div>
+  <div class="swatch" style="background:#C9A6FF" data-color="#C9A6FF"></div>
+  <div class="swatch" style="background:#FFB98A" data-color="#FFB98A"></div>
+  <div class="swatch" style="background:#8FCCF5" data-color="#8FCCF5"></div>
+  <div class="swatch" style="background:#FF9FC4" data-color="#FF9FC4"></div>
+  <div class="swatch" style="background:#A0A0A0" data-color="#A0A0A0"></div>
+  <div class="swatch" style="background:#7A5230" data-color="#7A5230"></div>
+  <div class="swatch" style="background:#4A3B63" data-color="#4A3B63"></div>
+</div>
+
+<div id="scriptPanel">
+  <button class="close-btn" id="closeScriptPanel">✕</button>
+  <h3>Block behavior</h3>
+  <div class="sub" id="scriptPanelSub">Select a block in Script mode to edit it</div>
+
+  <button class="behavior-option active" data-behavior="none">Do nothing</button>
+  <button class="behavior-option" data-behavior="disappear">Disappear when touched</button>
+  <button class="behavior-option" data-behavior="bounce">Bounce forever</button>
+  <button class="behavior-option" data-behavior="colorCycle">Change color when touched</button>
+  <button class="behavior-option" data-behavior="custom">Custom code</button>
+
+  <div id="customCodeArea">
+    <textarea id="codeInput" spellcheck="false" placeholder="api.setColor('#FF9FC4');
+api.log('touched!');"></textarea>
+    <div class="code-hint">
+      Runs when this block is touched. Available: <code>api.setColor(hex)</code>,
+      <code>api.remove()</code>, <code>api.log(msg)</code>, <code>api.moveTo(dx,dy,dz)</code>
+    </div>
+  </div>
+
+  <button id="applyScriptBtn">Apply to this block</button>
+  <div id="scriptStatus"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://jswsndzdfplggebjigzd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3NuZHpkZnBsZ2dlYmppZ3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjkxNjYsImV4cCI6MjA5ODc0NTE2Nn0.hsDtuylSBhpmikgSGFZ7YVLgl5ubspYiRu6Al0iswvA';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+<script>
+const KingdomAuth = (() => {
+  async function getCurrentUser() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return null;
+    const { data: profile, error } = await supabaseClient
+      .from('profiles').select('*').eq('id', user.id).single();
+    if (error || !profile) return null;
+    return { id: user.id, username: profile.username, displayName: profile.display_name };
+  }
+  async function requireAuth(redirectTo) {
+    const user = await getCurrentUser();
+    if (!user) { window.location.href = redirectTo || 'index.html'; return null; }
+    return user;
+  }
+  return { getCurrentUser, requireAuth };
+})();
+</script>
+<script>
+const KingdomRealms = (() => {
+  async function getMyRealm(ownerId) {
+    const { data, error } = await supabaseClient
+      .from('realms').select('*').eq('owner_id', ownerId).maybeSingle();
+    if (error) return null;
+    return data;
+  }
+  async function ensureRealm(ownerId, displayName) {
+    let realm = await getMyRealm(ownerId);
+    if (realm) return realm;
+    const { data, error } = await supabaseClient
+      .from('realms')
+      .insert({ owner_id: ownerId, name: displayName + "'s Kingdom", blocks: [] })
+      .select().single();
+    if (error) return null;
+    return data;
+  }
+  async function saveBlocks(ownerId, blocks) {
+    const { error } = await supabaseClient
+      .from('realms')
+      .update({ blocks, updated_at: new Date().toISOString() })
+      .eq('owner_id', ownerId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  }
+  return { getMyRealm, ensureRealm, saveBlocks };
+})();
+</script>
+
+<!-- Three.js (r128) + OrbitControls + FBXLoader (for your character model + animation) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/fflate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+
+<script>
+  let currentUser = null;
+  let myRealm = null;
+  let currentColor = '#8FE0B8';
+  let currentTool = 'build'; // build | script | play
+  let selectedBlockKey = null;
+  const GRID_SIZE = 1;
+
+  // ---------- three.js setup ----------
+  const canvasWrap = document.getElementById('canvasWrap');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xF6F0FC);
+  scene.fog = new THREE.Fog(0xF6F0FC, 30, 70);
+
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(14, 12, 14);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  canvasWrap.appendChild(renderer.domElement);
+
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 0, 0);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.maxPolarAngle = Math.PI / 2.05;
+  controls.update();
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+  sun.position.set(10, 20, 10);
+  scene.add(sun);
+
+  const groundGeo = new THREE.PlaneGeometry(40, 40);
+  const groundMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.userData.isGround = true;
+  scene.add(ground);
+
+  const gridHelper = new THREE.GridHelper(40, 40, 0xC9A6FF, 0xE0D4F5);
+  scene.add(gridHelper);
+
+  // ---------- block management ----------
+  const blockGeo = new THREE.BoxGeometry(GRID_SIZE, GRID_SIZE, GRID_SIZE);
+  const blocksGroup = new THREE.Group();
+  scene.add(blocksGroup);
+  const blockMap = new Map();
+
+  function keyFor(x, y, z) { return `${x},${y},${z}`; }
+
+  function addBlock(x, y, z, color, behavior, skipCountUpdate) {
+    const k = keyFor(x, y, z);
+    if (blockMap.has(k)) return;
+    const mat = new THREE.MeshStandardMaterial({ color });
+    const mesh = new THREE.Mesh(blockGeo, mat);
+    mesh.position.set(x * GRID_SIZE + GRID_SIZE / 2, y * GRID_SIZE + GRID_SIZE / 2, z * GRID_SIZE + GRID_SIZE / 2);
+    mesh.userData = {
+      isBlock: true, gx: x, gy: y, gz: z,
+      baseY: mesh.position.y,
+      behavior: behavior || { type: 'none' }
+    };
+    blocksGroup.add(mesh);
+    blockMap.set(k, mesh);
+    if (!skipCountUpdate) updateBlockCount();
+  }
+
+  function removeBlock(x, y, z) {
+    const k = keyFor(x, y, z);
+    const mesh = blockMap.get(k);
+    if (!mesh) return;
+    blocksGroup.remove(mesh);
+    mesh.material.dispose();
+    blockMap.delete(k);
+    if (selectedBlockKey === k) closeScriptPanel();
+    updateBlockCount();
+  }
+
+  function updateBlockCount() {
+    document.getElementById('blockCount').textContent = blockMap.size + ' block' + (blockMap.size === 1 ? '' : 's');
+  }
+
+  // ---------- raycasting (build & script tools) ----------
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+
+  function getIntersects(event) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const targets = [ground, ...blocksGroup.children];
+    return raycaster.intersectObjects(targets, false);
+  }
+
+  let didDrag = false;
+  renderer.domElement.addEventListener('pointerdown', () => { didDrag = false; });
+  renderer.domElement.addEventListener('pointermove', (e) => { if (e.buttons !== 0) didDrag = true; });
+
+  renderer.domElement.addEventListener('click', (e) => {
+    if (didDrag) return;
+    if (currentTool === 'play') return; // play mode uses walking, not clicking
+    const hits = getIntersects(e);
+    if (hits.length === 0) return;
+    const hit = hits[0];
+
+    if (currentTool === 'build') {
+      const normal = hit.face.normal.clone();
+      normal.transformDirection(hit.object.matrixWorld);
+      let gx, gy, gz;
+      if (hit.object.userData.isGround) {
+        gx = Math.floor(hit.point.x / GRID_SIZE);
+        gy = 0;
+        gz = Math.floor(hit.point.z / GRID_SIZE);
+      } else {
+        const b = hit.object.userData;
+        gx = b.gx + Math.round(normal.x);
+        gy = b.gy + Math.round(normal.y);
+        gz = b.gz + Math.round(normal.z);
+      }
+      if (gy < 0) return;
+      addBlock(gx, gy, gz, currentColor, { type: 'none' });
+
+    } else if (currentTool === 'script') {
+      if (!hit.object.userData.isBlock) return;
+      openScriptPanel(hit.object);
+    }
+  });
+
+  renderer.domElement.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    if (currentTool !== 'build') return;
+    const hits = getIntersects(e);
+    const blockHit = hits.find(h => h.object.userData.isBlock);
+    if (!blockHit) return;
+    const b = blockHit.object.userData;
+    removeBlock(b.gx, b.gy, b.gz);
+  });
+
+  // ---------- player (placeholder capsule — swap for your model, see loadPlayerModel below) ----------
+  const player = new THREE.Group();
+  const playerBodyGeo = new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.35, 0.9, 4, 8) : new THREE.CylinderGeometry(0.35, 0.35, 1.6, 8);
+  const playerMat = new THREE.MeshStandardMaterial({ color: 0xFF9FC4 });
+  const playerMesh = new THREE.Mesh(playerBodyGeo, playerMat);
+  playerMesh.position.y = 0.8;
+  player.add(playerMesh);
+  player.position.set(0, 3, 6);
+  player.visible = false;
+  scene.add(player);
+
+  const PLAYER_HALF_HEIGHT = 0.8;
+  const PLAYER_SPEED = 5.5;
+  const GRAVITY = 18;
+  const JUMP_SPEED = 7.5;
+  let playerVelocityY = 0;
+  let playerGrounded = false;
+  let lastTouchedKey = null;
+
+  // ---------- loading your real character model + animation ----------
+  let mixer = null;
+  let walkAction = null;
+  let modelLoaded = false;
+
+  const fbxLoader = new THREE.FBXLoader();
+  fbxLoader.load(
+    'walking.fbx',
+    (fbx) => {
+      // Success — swap out the placeholder capsule for your real model
+      player.remove(playerMesh);
+
+      // Mixamo FBX files are usually scaled in centimeters — 0.01 brings
+      // a ~180cm character down to ~1.8 units tall to match the block grid.
+      // Adjust this number if your model looks too big or too small.
+      fbx.scale.set(0.01, 0.01, 0.01);
+      fbx.position.y = 0; // model's own origin is usually already at its feet
+      player.add(fbx);
+
+      mixer = new THREE.AnimationMixer(fbx);
+      if (fbx.animations && fbx.animations.length > 0) {
+        walkAction = mixer.clipAction(fbx.animations[0]);
+        walkAction.play();
+        walkAction.paused = true; // start "idle" (frozen) until the player moves
+      }
+
+      modelLoaded = true;
+      console.log('Character model loaded:', fbx);
+
+      // ---------- adding a jump animation later ----------
+      // Once you have a jump.fbx (either standalone animation or full model),
+      // load it the same way and create a second action:
+      //
+      //   const jumpLoader = new THREE.FBXLoader();
+      //   jumpLoader.load('jump.fbx', (jumpFbx) => {
+      //     const jumpAction = mixer.clipAction(jumpFbx.animations[0]);
+      //     jumpAction.setLoop(THREE.LoopOnce);
+      //     jumpAction.clampWhenFinished = true;
+      //     // Then in updatePlayer(), when Space is pressed:
+      //     // walkAction.stop(); jumpAction.reset().play();
+      //   });
+    },
+    undefined,
+    (err) => {
+      console.warn('Could not load walking.fbx — using placeholder capsule instead.', err);
+    }
+  );
+
+  // ---------- keyboard input ----------
+  const keys = {};
+  window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+  window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+  // ---------- tool switching ----------
+  const helpText = document.getElementById('helpText');
+  const playBanner = document.getElementById('playBanner');
+
+  document.querySelectorAll('.tool-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTool = btn.dataset.tool;
+      closeScriptPanel();
+      playBanner.style.display = currentTool === 'play' ? 'block' : 'none';
+      player.visible = currentTool === 'play';
+      lastTouchedKey = null;
+
+      if (currentTool === 'play') {
+        // Spawn above the tallest block near the center, or default height
+        player.position.set(0.5, 5, 0.5);
+        playerVelocityY = 0;
+      }
+
+      if (currentTool === 'build') {
+        helpText.innerHTML = '<strong>Left-click</strong> a face to place a block<br><strong>Right-click</strong> a block to remove it<br><strong>Drag</strong> to orbit, <strong>scroll</strong> to zoom';
+      } else if (currentTool === 'script') {
+        helpText.innerHTML = '<strong>Click a block</strong> to give it a behavior<br><strong>Drag</strong> to orbit, <strong>scroll</strong> to zoom';
+      } else {
+        helpText.innerHTML = '<strong>WASD</strong> to walk, <strong>Space</strong> to jump<br>Walk onto a block to trigger its script<br><strong>Drag</strong> to look around';
+      }
+    });
+  });
+
+  // ---------- script panel ----------
+  const scriptPanel = document.getElementById('scriptPanel');
+  const scriptPanelSub = document.getElementById('scriptPanelSub');
+  const customCodeArea = document.getElementById('customCodeArea');
+  const codeInput = document.getElementById('codeInput');
+  const scriptStatus = document.getElementById('scriptStatus');
+  let selectedBehaviorType = 'none';
+
+  function openScriptPanel(mesh) {
+    selectedBlockKey = keyFor(mesh.userData.gx, mesh.userData.gy, mesh.userData.gz);
+    scriptPanelSub.textContent = `Editing block at (${mesh.userData.gx}, ${mesh.userData.gy}, ${mesh.userData.gz})`;
+    const behavior = mesh.userData.behavior || { type: 'none' };
+    selectedBehaviorType = behavior.type;
+
+    document.querySelectorAll('.behavior-option').forEach(opt => {
+      opt.classList.toggle('active', opt.dataset.behavior === behavior.type);
+    });
+    customCodeArea.style.display = behavior.type === 'custom' ? 'block' : 'none';
+    codeInput.value = behavior.code || '';
+    scriptStatus.textContent = '';
+    scriptPanel.classList.add('open');
+  }
+
+  function closeScriptPanel() {
+    scriptPanel.classList.remove('open');
+    selectedBlockKey = null;
+  }
+  document.getElementById('closeScriptPanel').addEventListener('click', closeScriptPanel);
+
+  document.querySelectorAll('.behavior-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.behavior-option').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      selectedBehaviorType = opt.dataset.behavior;
+      customCodeArea.style.display = selectedBehaviorType === 'custom' ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById('applyScriptBtn').addEventListener('click', () => {
+    if (!selectedBlockKey) return;
+    const mesh = blockMap.get(selectedBlockKey);
+    if (!mesh) return;
+
+    const behavior = { type: selectedBehaviorType };
+    if (selectedBehaviorType === 'custom') {
+      behavior.code = codeInput.value;
+      try {
+        new Function('block', 'api', behavior.code);
+      } catch (err) {
+        scriptStatus.textContent = 'Code error: ' + err.message;
+        scriptStatus.className = 'error';
+        return;
+      }
+    }
+    mesh.userData.behavior = behavior;
+    scriptStatus.textContent = 'Applied ✓';
+    scriptStatus.className = 'success';
+  });
+
+  // ---------- running behaviors ----------
+  function runBlockScript(mesh) {
+    const behavior = mesh.userData.behavior;
+    if (!behavior || behavior.type === 'none') return;
+
+    const api = {
+      setColor: (hex) => { mesh.material.color.set(hex); },
+      remove: () => { removeBlock(mesh.userData.gx, mesh.userData.gy, mesh.userData.gz); },
+      log: (msg) => { console.log('[block script]', msg); },
+      moveTo: (dx, dy, dz) => {
+        mesh.position.x += dx; mesh.position.y += dy; mesh.position.z += dz;
+      }
+    };
+
+    if (behavior.type === 'disappear') {
+      api.remove();
+    } else if (behavior.type === 'colorCycle') {
+      const colors = ['#8FE0B8', '#C9A6FF', '#FFB98A', '#8FCCF5', '#FF9FC4'];
+      const current = '#' + mesh.material.color.getHexString();
+      const idx = colors.findIndex(c => c.toLowerCase() === current.toLowerCase());
+      api.setColor(colors[(idx + 1) % colors.length]);
+    } else if (behavior.type === 'custom' && behavior.code) {
+      try {
+        const fn = new Function('block', 'api', behavior.code);
+        fn(mesh.userData, api);
+      } catch (err) {
+        console.error('Script error on block:', err);
+      }
+    }
+  }
+
+  // ---------- palette ----------
+  document.querySelectorAll('.swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+      currentColor = sw.dataset.color;
+    });
+  });
+
+  // ---------- resize ----------
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // ---------- player physics & movement (only active in Play mode) ----------
+  function getGroundHeightBelow(x, z, fromY) {
+    // Find the highest block top surface directly under (x, z), at or below fromY
+    let best = 0; // default: the invisible ground plane at y=0
+    blockMap.forEach(mesh => {
+      const bx = mesh.userData.gx, bz = mesh.userData.gz, by = mesh.userData.gy;
+      if (Math.abs((bx + 0.5) - x) < 0.5 && Math.abs((bz + 0.5) - z) < 0.5) {
+        const topY = by * GRID_SIZE + GRID_SIZE;
+        if (topY <= fromY + 0.6 && topY > best) best = topY;
+      }
+    });
+    return best;
+  }
+
+  function updatePlayer(dt) {
+    if (currentTool !== 'play') return;
+
+    // Movement relative to camera's horizontal facing direction
+    const camDir = new THREE.Vector3();
+    camera.getWorldDirection(camDir);
+    camDir.y = 0; camDir.normalize();
+    const camRight = new THREE.Vector3().crossVectors(camDir, new THREE.Vector3(0, 1, 0)).normalize();
+
+    const move = new THREE.Vector3();
+    if (keys['KeyW'] || keys['ArrowUp']) move.add(camDir);
+    if (keys['KeyS'] || keys['ArrowDown']) move.sub(camDir);
+    if (keys['KeyD'] || keys['ArrowRight']) move.add(camRight);
+    if (keys['KeyA'] || keys['ArrowLeft']) move.sub(camRight);
+
+    if (move.lengthSq() > 0) {
+      move.normalize().multiplyScalar(PLAYER_SPEED * dt);
+      player.position.x += move.x;
+      player.position.z += move.z;
+      player.rotation.y = Math.atan2(move.x, move.z);
+      if (walkAction) walkAction.paused = false; // playing = walking
+    } else {
+      if (walkAction) walkAction.paused = true; // frozen = "idle" until you add a real idle clip
+    }
+
+    // Gravity + ground collision
+    playerVelocityY -= GRAVITY * dt;
+    player.position.y += playerVelocityY * dt;
+
+    const groundY = getGroundHeightBelow(player.position.x, player.position.z, player.position.y);
+    if (player.position.y - PLAYER_HALF_HEIGHT <= groundY) {
+      player.position.y = groundY + PLAYER_HALF_HEIGHT;
+      playerVelocityY = 0;
+      playerGrounded = true;
+    } else {
+      playerGrounded = false;
+    }
+
+    if (keys['Space'] && playerGrounded) {
+      playerVelocityY = JUMP_SPEED;
+      playerGrounded = false;
+    }
+
+    // Touch detection — walking onto a block cell triggers its script once per entry
+    const gx = Math.floor(player.position.x);
+    const gz = Math.floor(player.position.z);
+    const standingY = Math.round(groundY / GRID_SIZE) - 1;
+    const k = keyFor(gx, standingY, gz);
+    if (k !== lastTouchedKey) {
+      lastTouchedKey = k;
+      const mesh = blockMap.get(k);
+      if (mesh) runBlockScript(mesh);
+    }
+
+    // Camera follows player (third-person)
+    controls.target.lerp(player.position, 0.15);
+  }
+
+  // ---------- render loop ----------
+  let t = 0;
+  let lastTime = performance.now();
+  function animate() {
+    requestAnimationFrame(animate);
+    const now = performance.now();
+    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    lastTime = now;
+    t += 0.05;
+
+    blocksGroup.children.forEach(mesh => {
+      if (mesh.userData.behavior && mesh.userData.behavior.type === 'bounce') {
+        mesh.position.y = mesh.userData.baseY + Math.sin(t + mesh.userData.gx) * 0.15;
+      }
+    });
+
+    updatePlayer(dt);
+    if (mixer) mixer.update(dt);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // ---------- save / load ----------
+  function serializeBlocks() {
+    return Array.from(blockMap.values()).map(m => ({
+      x: m.userData.gx, y: m.userData.gy, z: m.userData.gz,
+      color: '#' + m.material.color.getHexString(),
+      behavior: m.userData.behavior && m.userData.behavior.type !== 'none' ? m.userData.behavior : undefined
+    }));
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    const status = document.getElementById('statusMsg');
+    status.textContent = 'Saving...';
+    const blocks = serializeBlocks();
+    const result = await KingdomRealms.saveBlocks(currentUser.id, blocks);
+    status.textContent = result.ok ? 'Saved ✓' : 'Error: ' + result.error;
+    setTimeout(() => { status.textContent = ''; }, 2500);
+  });
+
+  // ---------- init ----------
+  (async () => {
+    currentUser = await KingdomAuth.requireAuth('index.html');
+    if (!currentUser) return;
+
+    myRealm = await KingdomRealms.ensureRealm(currentUser.id, currentUser.displayName);
+    if (myRealm && Array.isArray(myRealm.blocks) && myRealm.blocks.length > 0) {
+      myRealm.blocks.forEach(b => addBlock(b.x, b.y, b.z, b.color, b.behavior, true));
+      updateBlockCount();
+    } else {
+      for (let x = -3; x <= 3; x++) {
+        for (let z = -3; z <= 3; z++) {
+          addBlock(x, 0, z, '#8FE0B8', { type: 'none' }, true);
+        }
+      }
+      updateBlockCount();
+    }
+  })();
+</script>
+
+</body>
+</html>

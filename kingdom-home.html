@@ -49,14 +49,12 @@
     border: 3px solid var(--white);
     display: flex; align-items: center; justify-content: center;
     font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(74,59,99,0.12);
-    /* PLACEHOLDER: replace inner content with <img src="my-avatar.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
   }
 
   a:focus-visible, button:focus-visible, input:focus-visible {
     outline: 3px solid var(--sky-deep); outline-offset: 2px;
   }
 
-  /* ---------- layout ---------- */
   .home-layout {
     position: relative; z-index: 5; max-width: 1300px; margin: 0 auto;
     padding: 12px 48px 100px;
@@ -70,7 +68,6 @@
   }
   .panel h2 { font-size: 17px; font-weight: 700; font-family: 'Nunito', sans-serif; margin-bottom: 16px; }
 
-  /* ---------- profile card ---------- */
   .profile-card {
     background: linear-gradient(160deg, var(--lavender), var(--sky));
     border-radius: 24px; padding: 28px 24px; text-align: center;
@@ -80,8 +77,6 @@
     background: var(--white); border: 4px solid var(--white);
     display: flex; align-items: center; justify-content: center; font-size: 36px;
     box-shadow: 0 8px 20px rgba(74,59,99,0.15);
-    /* PLACEHOLDER: replace inner content with
-       <img src="my-avatar.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
   }
   .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
   .profile-handle { font-size: 13px; color: var(--plum); opacity: 0.7; font-weight: 700; margin-bottom: 16px; }
@@ -104,12 +99,10 @@
     background: repeating-linear-gradient(135deg, var(--lavender) 0 14px, var(--sky) 14px 28px);
     display: flex; align-items: center; justify-content: center;
     font-size: 12px; font-weight: 800; color: var(--plum); text-align: center; padding: 8px;
-    /* PLACEHOLDER: replace with <img src="my-kingdom.png" style="width:100%;height:100%;object-fit:cover;border-radius:14px;"> */
   }
   .kingdom-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
   .kingdom-card p { font-size: 12px; color: var(--plum-soft); font-weight: 700; }
 
-  /* ---------- feed ---------- */
   .feed-item {
     display: flex; gap: 14px; padding: 14px 0;
     border-bottom: 1px solid #F0EAF8;
@@ -118,7 +111,6 @@
   .feed-avatar {
     width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
     background: var(--peach); display: flex; align-items: center; justify-content: center; font-size: 18px;
-    /* PLACEHOLDER: friend/activity avatar image goes here */
   }
   .feed-text { font-size: 14px; line-height: 1.5; }
   .feed-text strong { font-weight: 800; }
@@ -134,7 +126,6 @@
   .quick-btn:hover { background: var(--lavender); transform: translateY(-2px); }
   .quick-btn .icon { font-size: 20px; }
 
-  /* ---------- friends list ---------- */
   .friends-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
   .friends-tab {
     flex: 1; text-align: center; background: var(--cream); border: none; padding: 9px 0;
@@ -149,7 +140,6 @@
   .friend-avatar {
     width: 40px; height: 40px; border-radius: 50%; position: relative; flex-shrink: 0;
     background: var(--sky); display: flex; align-items: center; justify-content: center; font-size: 16px;
-    /* PLACEHOLDER: replace inner content with <img src="friend.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"> */
   }
   .status-dot {
     width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--white);
@@ -173,7 +163,6 @@
   }
   .add-friend-btn:hover { border-color: var(--peach-deep); color: var(--plum); }
 
-  /* ---------- friend requests & search results ---------- */
   .request-row, .result-row {
     display: flex; align-items: center; gap: 10px; padding: 8px 0;
   }
@@ -224,7 +213,7 @@
   <ul class="nav-links">
     <li><a href="#" class="active">Home</a></li>
     <li><a href="#">Explore</a></li>
-    <li><a href="#">Create</a></li>
+    <li><a href="kingdom-create.html">Create</a></li>
   </ul>
   <div class="nav-right">
     <div class="nav-avatar" id="navAvatar">🙂</div>
@@ -234,7 +223,6 @@
 
 <div class="home-layout">
 
-  <!-- ---------- left: profile ---------- -->
   <div>
     <div class="profile-card">
       <div class="profile-pic">🙂</div>
@@ -248,15 +236,26 @@
       <button class="btn-edit">Edit profile</button>
     </div>
 
-    <div class="panel kingdom-card">
+    <div class="panel kingdom-card" id="realmCard">
       <h2>Your kingdom</h2>
-      <div class="thumb">🏰<br>No kingdom yet</div>
-      <h3>You haven't built one yet</h3>
-      <p><span style="color:var(--peach-deep); font-weight:800;">Start building →</span></p>
+
+      <div id="realmCreateForm" style="display:none;">
+        <input type="text" id="realmNameInput" placeholder="Name your realm..." maxlength="40"
+               style="width:100%; padding:11px 14px; border-radius:12px; border:2px solid #F0EAF8; background:var(--cream); font-family:'Nunito',sans-serif; font-size:14px; color:var(--plum); margin-bottom:8px;">
+        <textarea id="realmDescInput" placeholder="Describe your kingdom (optional)" maxlength="140" rows="2"
+               style="width:100%; padding:11px 14px; border-radius:12px; border:2px solid #F0EAF8; background:var(--cream); font-family:'Nunito',sans-serif; font-size:13px; color:var(--plum); margin-bottom:10px; resize:none;"></textarea>
+        <button class="btn-edit" id="createRealmBtn" style="width:100%; background:var(--mint-deep);">Create my kingdom</button>
+      </div>
+
+      <div id="realmDisplay" style="display:none;">
+        <div class="thumb">🏰</div>
+        <h3 id="realmNameDisplay"></h3>
+        <p id="realmDescDisplay"></p>
+        <button class="btn-edit" id="editRealmBtn" style="margin-top:10px;">Edit</button>
+      </div>
     </div>
   </div>
 
-  <!-- ---------- middle: feed ---------- -->
   <div class="panel">
     <h2>What's happening</h2>
     <div class="quick-actions">
@@ -272,7 +271,6 @@
     </div>
   </div>
 
-  <!-- ---------- right: friends ---------- -->
   <div class="panel">
     <h2>Friends</h2>
 
@@ -304,29 +302,326 @@
 
 </div>
 
-<script src="kingdom-auth.js"></script>
-<script src="kingdom-friends.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // Require login to view this page — redirects to the landing page if not logged in
-  const currentUser = KingdomAuth.requireAuth('kingdom-landing.html');
+const SUPABASE_URL = 'https://jswsndzdfplggebjigzd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3NuZHpkZnBsZ2dlYmppZ3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjkxNjYsImV4cCI6MjA5ODc0NTE2Nn0.hsDtuylSBhpmikgSGFZ7YVLgl5ubspYiRu6Al0iswvA';
 
-  if (currentUser) {
-    document.getElementById('profileName').textContent = currentUser.displayName;
-    document.getElementById('profileHandle').textContent = '@' + currentUser.username;
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+<script>
+const KingdomAuth = (() => {
+
+  async function signUp({ email, password, username, displayName, birthday }) {
+    username = (username || '').trim().toLowerCase();
+    email = (email || '').trim();
+
+    if (!email || !password || !username) {
+      return { ok: false, error: 'Fill in email, username, and password.' };
+    }
+    if (password.length < 8) {
+      return { ok: false, error: 'Password must be at least 8 characters.' };
+    }
+
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) {
+      return { ok: false, error: error.message };
+    }
+    if (!data.user) {
+      return { ok: false, error: 'Something went wrong creating your account.' };
+    }
+
+    const { error: profileError } = await supabaseClient.from('profiles').insert({
+      id: data.user.id,
+      username,
+      display_name: displayName || username,
+      birthday: birthday || null
+    });
+
+    if (profileError) {
+      if (profileError.message.includes('duplicate') || profileError.code === '23505') {
+        return { ok: false, error: 'That username is already taken.' };
+      }
+      return { ok: false, error: profileError.message };
+    }
+
+    if (!data.session) {
+      return {
+        ok: true,
+        needsConfirmation: true,
+        message: 'Account created! Check your email to confirm before logging in.'
+      };
+    }
+
+    return { ok: true, username };
   }
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    KingdomAuth.logOut();
-    window.location.href = 'kingdom-landing.html';
-  });
+  async function logIn({ email, password }) {
+    email = (email || '').trim();
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) {
+      return { ok: false, error: 'Incorrect email or password.' };
+    }
+    return { ok: true, user: data.user };
+  }
 
-  // ---------- friends: render ----------
-  function renderFriends() {
+  async function logOut() {
+    await supabaseClient.auth.signOut();
+  }
+
+  async function getCurrentUser() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return null;
+
+    const { data: profile, error } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !profile) return null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: profile.username,
+      displayName: profile.display_name,
+      birthday: profile.birthday
+    };
+  }
+
+  async function requireAuth(redirectTo) {
+    const user = await getCurrentUser();
+    if (!user) {
+      window.location.href = redirectTo || 'index.html';
+      return null;
+    }
+    return user;
+  }
+
+  return { signUp, logIn, logOut, getCurrentUser, requireAuth };
+})();
+</script>
+<script>
+const KingdomFriends = (() => {
+
+  function sortedPair(a, b) {
+    return a < b ? [a, b] : [b, a];
+  }
+
+  async function searchUsers(query, myId) {
+    query = (query || '').trim();
+    if (!query) return [];
+
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .select('id, username, display_name')
+      .neq('id', myId)
+      .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
+      .limit(15);
+
+    if (error || !data) return [];
+    return data.map(p => ({ id: p.id, username: p.username, displayName: p.display_name }));
+  }
+
+  async function areFriends(myId, otherId) {
+    const [a, b] = sortedPair(myId, otherId);
+    const { data } = await supabaseClient
+      .from('friendships')
+      .select('id')
+      .eq('user_a', a)
+      .eq('user_b', b)
+      .maybeSingle();
+    return !!data;
+  }
+
+  async function sendRequest(fromId, toId) {
+    if (fromId === toId) return { ok: false, error: "You can't friend yourself." };
+
+    const alreadyFriends = await areFriends(fromId, toId);
+    if (alreadyFriends) return { ok: false, error: 'Already friends.' };
+
+    const { data: theirRequest } = await supabaseClient
+      .from('friend_requests')
+      .select('id')
+      .eq('from_id', toId)
+      .eq('to_id', fromId)
+      .maybeSingle();
+
+    if (theirRequest) {
+      return acceptRequest(theirRequest.id, fromId, toId);
+    }
+
+    const { error } = await supabaseClient
+      .from('friend_requests')
+      .insert({ from_id: fromId, to_id: toId });
+
+    if (error) {
+      if (error.code === '23505') return { ok: false, error: 'Request already sent.' };
+      return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  }
+
+  async function getIncomingRequests(myId) {
+    const { data: requests, error } = await supabaseClient
+      .from('friend_requests')
+      .select('id, from_id')
+      .eq('to_id', myId);
+
+    if (error || !requests || requests.length === 0) return [];
+
+    const fromIds = requests.map(r => r.from_id);
+    const { data: profiles } = await supabaseClient
+      .from('profiles')
+      .select('id, username, display_name')
+      .in('id', fromIds);
+
+    const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
+    return requests.map(r => ({
+      requestId: r.id,
+      fromId: r.from_id,
+      username: profileMap[r.from_id]?.username || 'unknown',
+      displayName: profileMap[r.from_id]?.display_name || 'Unknown'
+    }));
+  }
+
+  async function acceptRequest(requestId, myId, fromId) {
+    const [a, b] = sortedPair(myId, fromId);
+
+    const { error: insertError } = await supabaseClient
+      .from('friendships')
+      .insert({ user_a: a, user_b: b });
+
+    if (insertError && insertError.code !== '23505') {
+      return { ok: false, error: insertError.message };
+    }
+
+    await supabaseClient.from('friend_requests').delete().eq('id', requestId);
+    return { ok: true };
+  }
+
+  async function declineRequest(requestId) {
+    const { error } = await supabaseClient.from('friend_requests').delete().eq('id', requestId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  }
+
+  async function getFriends(myId) {
+    const { data: friendships, error } = await supabaseClient
+      .from('friendships')
+      .select('id, user_a, user_b')
+      .or(`user_a.eq.${myId},user_b.eq.${myId}`);
+
+    if (error || !friendships || friendships.length === 0) return [];
+
+    const otherIds = friendships.map(f => (f.user_a === myId ? f.user_b : f.user_a));
+    const { data: profiles } = await supabaseClient
+      .from('profiles')
+      .select('id, username, display_name')
+      .in('id', otherIds);
+
+    const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
+    return friendships.map(f => {
+      const otherId = f.user_a === myId ? f.user_b : f.user_a;
+      return {
+        friendshipId: f.id,
+        id: otherId,
+        username: profileMap[otherId]?.username || 'unknown',
+        displayName: profileMap[otherId]?.display_name || 'Unknown'
+      };
+    });
+  }
+
+  async function removeFriend(friendshipId) {
+    const { error } = await supabaseClient.from('friendships').delete().eq('id', friendshipId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  }
+
+  return {
+    searchUsers,
+    sendRequest,
+    getIncomingRequests,
+    acceptRequest,
+    declineRequest,
+    getFriends,
+    removeFriend,
+    areFriends
+  };
+})();
+</script>
+<script>
+const KingdomRealms = (() => {
+
+  async function getMyRealm(ownerId) {
+    const { data, error } = await supabaseClient
+      .from('realms')
+      .select('*')
+      .eq('owner_id', ownerId)
+      .maybeSingle();
+    if (error) return null;
+    return data;
+  }
+
+  async function createRealm(ownerId, name, description) {
+    name = (name || '').trim();
+    if (!name) return { ok: false, error: 'Give your kingdom a name.' };
+
+    const { data, error } = await supabaseClient
+      .from('realms')
+      .insert({ owner_id: ownerId, name, description: (description || '').trim() })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') return { ok: false, error: 'You already have a realm.' };
+      return { ok: false, error: error.message };
+    }
+    return { ok: true, realm: data };
+  }
+
+  async function updateRealm(ownerId, name, description) {
+    name = (name || '').trim();
+    if (!name) return { ok: false, error: 'Give your kingdom a name.' };
+
+    const { data, error } = await supabaseClient
+      .from('realms')
+      .update({ name, description: (description || '').trim(), updated_at: new Date().toISOString() })
+      .eq('owner_id', ownerId)
+      .select()
+      .single();
+
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, realm: data };
+  }
+
+  async function getAllRealms() {
+    const { data, error } = await supabaseClient
+      .from('realms')
+      .select('id, name, description, owner_id, created_at')
+      .order('created_at', { ascending: false });
+    if (error || !data) return [];
+    return data;
+  }
+
+  return { getMyRealm, createRealm, updateRealm, getAllRealms };
+})();
+</script>
+<script>
+  let currentUser = null;
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function renderFriends() {
     if (!currentUser) return;
-    const me = currentUser.username;
+    const myId = currentUser.id;
 
-    // Incoming requests
-    const incoming = KingdomFriends.getIncomingRequests(me);
+    const incoming = await KingdomFriends.getIncomingRequests(myId);
     const incomingBox = document.getElementById('incomingRequestsBox');
     const incomingList = document.getElementById('incomingRequestsList');
     incomingList.innerHTML = '';
@@ -341,12 +636,12 @@
           <button class="btn-accept">Accept</button>
           <button class="btn-decline">Decline</button>
         `;
-        row.querySelector('.btn-accept').addEventListener('click', () => {
-          KingdomFriends.acceptRequest(me, req.from);
+        row.querySelector('.btn-accept').addEventListener('click', async () => {
+          await KingdomFriends.acceptRequest(req.requestId, myId, req.fromId);
           renderFriends();
         });
-        row.querySelector('.btn-decline').addEventListener('click', () => {
-          KingdomFriends.declineRequest(me, req.from);
+        row.querySelector('.btn-decline').addEventListener('click', async () => {
+          await KingdomFriends.declineRequest(req.requestId);
           renderFriends();
         });
         incomingList.appendChild(row);
@@ -355,8 +650,7 @@
       incomingBox.style.display = 'none';
     }
 
-    // Friends list
-    const friends = KingdomFriends.getFriends(me);
+    const friends = await KingdomFriends.getFriends(myId);
     document.getElementById('friendCount').textContent = friends.length;
     const emptyState = document.getElementById('friendsEmptyState');
     const listEl = document.getElementById('friendsList');
@@ -377,8 +671,8 @@
           </div>
           <button class="btn-remove-friend" title="Remove friend">✕</button>
         `;
-        row.querySelector('.btn-remove-friend').addEventListener('click', () => {
-          KingdomFriends.removeFriend(me, friend.username);
+        row.querySelector('.btn-remove-friend').addEventListener('click', async () => {
+          await KingdomFriends.removeFriend(friend.friendshipId);
           renderFriends();
         });
         listEl.appendChild(row);
@@ -386,13 +680,6 @@
     }
   }
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  // ---------- friends: add-friend search panel ----------
   const addFriendToggle = document.getElementById('addFriendToggle');
   const addFriendPanel = document.getElementById('addFriendPanel');
   const friendSearchInput = document.getElementById('friendSearchInput');
@@ -405,12 +692,12 @@
     if (!isOpen) friendSearchInput.focus();
   });
 
-  friendSearchInput.addEventListener('input', () => {
+  friendSearchInput.addEventListener('input', async () => {
     const query = friendSearchInput.value;
     friendSearchResults.innerHTML = '';
     if (!query.trim()) return;
 
-    const results = KingdomFriends.searchUsers(query, currentUser.username);
+    const results = await KingdomFriends.searchUsers(query, currentUser.id);
     if (results.length === 0) {
       friendSearchResults.innerHTML = '<div class="no-results">No matching users found.</div>';
       return;
@@ -424,19 +711,75 @@
         <div class="who">${escapeHtml(result.displayName)}</div>
         <button class="btn-send-request">Add</button>
       `;
-      row.querySelector('.btn-send-request').addEventListener('click', () => {
-        const res = KingdomFriends.sendRequest(currentUser.username, result.username);
+      row.querySelector('.btn-send-request').addEventListener('click', async () => {
+        const btn = row.querySelector('.btn-send-request');
+        const res = await KingdomFriends.sendRequest(currentUser.id, result.id);
         if (res.ok) {
-          row.querySelector('.btn-send-request').textContent = 'Sent ✓';
-          row.querySelector('.btn-send-request').disabled = true;
+          btn.textContent = 'Sent ✓';
+          btn.disabled = true;
           renderFriends();
+        } else {
+          btn.textContent = res.error || 'Error';
         }
       });
       friendSearchResults.appendChild(row);
     });
   });
 
-  renderFriends();
+  async function renderRealm() {
+    if (!currentUser) return;
+    const realm = await KingdomRealms.getMyRealm(currentUser.id);
+    const createForm = document.getElementById('realmCreateForm');
+    const display = document.getElementById('realmDisplay');
+
+    if (realm) {
+      createForm.style.display = 'none';
+      display.style.display = 'block';
+      document.getElementById('realmNameDisplay').textContent = realm.name;
+      document.getElementById('realmDescDisplay').textContent = realm.description || 'No description yet.';
+      document.getElementById('editRealmBtn').onclick = () => {
+        createForm.style.display = 'block';
+        display.style.display = 'none';
+        document.getElementById('realmNameInput').value = realm.name;
+        document.getElementById('realmDescInput').value = realm.description || '';
+        document.getElementById('createRealmBtn').textContent = 'Save changes';
+        document.getElementById('createRealmBtn').onclick = async () => {
+          const name = document.getElementById('realmNameInput').value;
+          const desc = document.getElementById('realmDescInput').value;
+          const res = await KingdomRealms.updateRealm(currentUser.id, name, desc);
+          if (res.ok) renderRealm();
+          else alert(res.error);
+        };
+      };
+    } else {
+      createForm.style.display = 'block';
+      display.style.display = 'none';
+      document.getElementById('createRealmBtn').textContent = 'Create my kingdom';
+      document.getElementById('createRealmBtn').onclick = async () => {
+        const name = document.getElementById('realmNameInput').value;
+        const desc = document.getElementById('realmDescInput').value;
+        const res = await KingdomRealms.createRealm(currentUser.id, name, desc);
+        if (res.ok) renderRealm();
+        else alert(res.error);
+      };
+    }
+  }
+
+  (async () => {
+    currentUser = await KingdomAuth.requireAuth('index.html');
+    if (!currentUser) return;
+
+    document.getElementById('profileName').textContent = currentUser.displayName;
+    document.getElementById('profileHandle').textContent = '@' + currentUser.username;
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await KingdomAuth.logOut();
+      window.location.href = 'index.html';
+    });
+
+    renderFriends();
+    renderRealm();
+  })();
 </script>
 
 </body>

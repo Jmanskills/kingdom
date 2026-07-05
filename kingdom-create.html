@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kingdom — Create your kingdom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lavender: #EAD9FF;
+    --lavender-deep: #C9A6FF;
+    --mint: #C7F5DE;
+    --mint-deep: #8FE0B8;
+    --peach: #FFD9BE;
+    --peach-deep: #FFB98A;
+    --sky: #C3E7FF;
+    --sky-deep: #8FCCF5;
+    --plum: #4A3B63;
+    --plum-soft: #7A6B94;
+    --cream: #F6F0FC;
+    --white: #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--plum); min-height: 100vh; }
+  h1, h2, h3, .brand { font-family: 'Fredoka', sans-serif; }
+
+  .bg-blob { position: fixed; border-radius: 50%; z-index: 0; opacity: 0.5; }
+  .bg-blob.b1 { width: 320px; height: 320px; background: var(--sky); top: -100px; right: -80px; }
+  .bg-blob.b2 { width: 260px; height: 260px; background: var(--peach); bottom: -90px; left: -70px; opacity: 0.4; }
+
+  nav {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 48px; max-width: 1300px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 600; }
+  .brand-crown { width: 30px; height: 30px; }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a { text-decoration: none; color: var(--plum-soft); font-weight: 700; font-size: 15px; }
+  .nav-links a:hover, .nav-links a.active { color: var(--plum); }
+  .nav-cta {
+    background: var(--plum); color: var(--cream); border: none; padding: 10px 22px; border-radius: 999px;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 3px solid var(--sky-deep); outline-offset: 2px;
+  }
+
+  .page-head { position: relative; z-index: 5; max-width: 700px; margin: 0 auto; padding: 12px 24px 8px; }
+  .page-head h1 { font-size: 34px; font-weight: 600; margin-bottom: 4px; }
+  .page-head p { color: var(--plum-soft); font-weight: 700; font-size: 15px; }
+
+  .create-card {
+    position: relative; z-index: 5; max-width: 700px; margin: 24px auto 100px;
+    background: var(--white); border-radius: 28px; padding: 36px;
+    box-shadow: 0 10px 24px rgba(74,59,99,0.08);
+  }
+
+  .field { margin-bottom: 20px; }
+  .field label { display: block; font-size: 13px; font-weight: 800; color: var(--plum); margin-bottom: 8px; }
+  .field input, .field textarea {
+    width: 100%; padding: 14px 16px; border-radius: 14px; border: 2px solid #F0EAF8;
+    background: var(--cream); font-family: 'Nunito', sans-serif; font-size: 15px; color: var(--plum);
+    transition: border-color 0.2s; resize: none;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--lavender-deep); }
+  .char-count { text-align: right; font-size: 12px; color: var(--plum-soft); font-weight: 700; margin-top: 4px; }
+
+  .preview-thumb {
+    width: 100%; aspect-ratio: 16/9; border-radius: 18px; margin-bottom: 24px;
+    border: 3px dashed var(--lavender-deep);
+    background: repeating-linear-gradient(135deg, var(--lavender) 0 16px, var(--sky) 16px 32px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+  }
+
+  .action-row { display: flex; gap: 12px; margin-top: 8px; }
+  .btn-save {
+    flex: 1; background: var(--mint-deep); color: var(--plum); border: none; padding: 15px;
+    border-radius: 14px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px;
+    cursor: pointer; box-shadow: 0 5px 0 #6DC79A; transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn-save:active { transform: translateY(3px); box-shadow: 0 2px 0 #6DC79A; }
+  .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn-delete {
+    background: var(--white); color: #C0453D; border: 2px solid #FFDADA; padding: 15px 20px;
+    border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+
+  #statusMsg {
+    display: none; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 13px; margin-bottom: 18px;
+  }
+  #statusMsg.error { background: #FFE3E3; color: #B8433D; display: block; }
+  #statusMsg.success { background: #E3F5EA; color: #2F8F58; display: block; }
+
+  @media (max-width: 750px) {
+    .nav-links { display: none; }
+    nav, .page-head, .create-card { padding-left: 24px; padding-right: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+
+<nav>
+  <div class="brand">
+    <svg class="brand-crown" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 28 L4 14 L12 20 L20 8 L28 20 L36 14 L34 28 Z" fill="#FFB98A" stroke="#4A3B63" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="5" y="28" width="30" height="5" rx="2" fill="#FFB98A" stroke="#4A3B63" stroke-width="2"/>
+    </svg>
+    Kingdom
+  </div>
+  <ul class="nav-links">
+    <li><a href="kingdom-home.html">Home</a></li>
+    <li><a href="#">Explore</a></li>
+    <li><a href="#" class="active">Create</a></li>
+  </ul>
+  <button class="nav-cta" onclick="window.location.href='kingdom-home.html'">Back to home</button>
+</nav>
+
+<div class="page-head">
+  <h1 id="pageTitle">Create your kingdom</h1>
+  <p id="pageSub">Give it a name and a description — you can change these anytime.</p>
+</div>
+
+<div class="create-card">
+  <div id="statusMsg"></div>
+
+  <div class="preview-thumb">🏰</div>
+
+  <div class="field">
+    <label for="realmNameInput">Kingdom name</label>
+    <input type="text" id="realmNameInput" placeholder="e.g. Mosswood Kingdom" maxlength="40">
+  </div>
+
+  <div class="field">
+    <label for="realmDescInput">Description</label>
+    <textarea id="realmDescInput" rows="4" placeholder="What's your kingdom like?" maxlength="140"></textarea>
+    <div class="char-count"><span id="charCount">0</span>/140</div>
+  </div>
+
+  <div class="action-row">
+    <button class="btn-save" id="saveBtn">Create my kingdom</button>
+    <button class="btn-delete" id="deleteBtn" style="display:none;">Delete</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://jswsndzdfplggebjigzd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3NuZHpkZnBsZ2dlYmppZ3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjkxNjYsImV4cCI6MjA5ODc0NTE2Nn0.hsDtuylSBhpmikgSGFZ7YVLgl5ubspYiRu6Al0iswvA';
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+<script>
+const KingdomAuth = (() => {
+
+  async function getCurrentUser() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return null;
+
+    const { data: profile, error } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !profile) return null;
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: profile.username,
+      displayName: profile.display_name,
+      birthday: profile.birthday
+    };
+  }
+
+  async function requireAuth(redirectTo) {
+    const user = await getCurrentUser();
+    if (!user) {
+      window.location.href = redirectTo || 'index.html';
+      return null;
+    }
+    return user;
+  }
+
+  return { getCurrentUser, requireAuth };
+})();
+</script>
+<script>
+const KingdomRealms = (() => {
+
+  async function getMyRealm(ownerId) {
+    const { data, error } = await supabaseClient
+      .from('realms')
+      .select('*')
+      .eq('owner_id', ownerId)
+      .maybeSingle();
+    if (error) return null;
+    return data;
+  }
+
+  async function createRealm(ownerId, name, description) {
+    name = (name || '').trim();
+    if (!name) return { ok: false, error: 'Give your kingdom a name.' };
+
+    const { data, error } = await supabaseClient
+      .from('realms')
+      .insert({ owner_id: ownerId, name, description: (description || '').trim() })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') return { ok: false, error: 'You already have a realm.' };
+      return { ok: false, error: error.message };
+    }
+    return { ok: true, realm: data };
+  }
+
+  async function updateRealm(ownerId, name, description) {
+    name = (name || '').trim();
+    if (!name) return { ok: false, error: 'Give your kingdom a name.' };
+
+    const { data, error } = await supabaseClient
+      .from('realms')
+      .update({ name, description: (description || '').trim(), updated_at: new Date().toISOString() })
+      .eq('owner_id', ownerId)
+      .select()
+      .single();
+
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, realm: data };
+  }
+
+  async function deleteRealm(ownerId) {
+    const { error } = await supabaseClient.from('realms').delete().eq('owner_id', ownerId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  }
+
+  return { getMyRealm, createRealm, updateRealm, deleteRealm };
+})();
+</script>
+<script>
+  let currentUser = null;
+  let existingRealm = null;
+
+  const nameInput = document.getElementById('realmNameInput');
+  const descInput = document.getElementById('realmDescInput');
+  const charCount = document.getElementById('charCount');
+  const saveBtn = document.getElementById('saveBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const statusMsg = document.getElementById('statusMsg');
+
+  descInput.addEventListener('input', () => {
+    charCount.textContent = descInput.value.length;
+  });
+
+  function showStatus(msg, type) {
+    statusMsg.textContent = msg;
+    statusMsg.className = type;
+  }
+
+  saveBtn.addEventListener('click', async () => {
+    saveBtn.disabled = true;
+    const name = nameInput.value;
+    const desc = descInput.value;
+
+    const result = existingRealm
+      ? await KingdomRealms.updateRealm(currentUser.id, name, desc)
+      : await KingdomRealms.createRealm(currentUser.id, name, desc);
+
+    saveBtn.disabled = false;
+
+    if (!result.ok) {
+      showStatus(result.error, 'error');
+      return;
+    }
+
+    existingRealm = result.realm;
+    showStatus('Saved!', 'success');
+    saveBtn.textContent = 'Save changes';
+    deleteBtn.style.display = 'inline-block';
+    document.getElementById('pageTitle').textContent = 'Edit your kingdom';
+  });
+
+  deleteBtn.addEventListener('click', async () => {
+    if (!confirm('Delete your kingdom? This can\'t be undone.')) return;
+    const result = await KingdomRealms.deleteRealm(currentUser.id);
+    if (result.ok) {
+      window.location.href = 'kingdom-home.html';
+    } else {
+      showStatus(result.error, 'error');
+    }
+  });
+
+  (async () => {
+    currentUser = await KingdomAuth.requireAuth('index.html');
+    if (!currentUser) return;
+
+    existingRealm = await KingdomRealms.getMyRealm(currentUser.id);
+    if (existingRealm) {
+      nameInput.value = existingRealm.name;
+      descInput.value = existingRealm.description || '';
+      charCount.textContent = (existingRealm.description || '').length;
+      saveBtn.textContent = 'Save changes';
+      deleteBtn.style.display = 'inline-block';
+      document.getElementById('pageTitle').textContent = 'Edit your kingdom';
+      document.getElementById('pageSub').textContent = 'Make changes and save whenever you like.';
+    }
+  })();
+</script>
+
+</body>
+</html>
