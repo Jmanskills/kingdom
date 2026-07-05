@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kingdom — Explore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lavender: #EAD9FF; --lavender-deep: #C9A6FF;
+    --mint: #C7F5DE; --mint-deep: #8FE0B8;
+    --peach: #FFD9BE; --peach-deep: #FFB98A;
+    --sky: #C3E7FF; --sky-deep: #8FCCF5;
+    --plum: #4A3B63; --plum-soft: #7A6B94;
+    --cream: #F6F0FC; --white: #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--plum); min-height: 100vh; }
+  h1, .brand { font-family: 'Fredoka', sans-serif; }
+
+  .bg-blob { position: fixed; border-radius: 50%; z-index: 0; opacity: 0.5; }
+  .bg-blob.b1 { width: 340px; height: 340px; background: var(--lavender); top: -110px; left: -90px; }
+  .bg-blob.b2 { width: 260px; height: 260px; background: var(--mint); bottom: -90px; right: -70px; }
+
+  nav {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 48px; max-width: 1300px; margin: 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 600; }
+  .brand-crown { width: 30px; height: 30px; }
+  .nav-cta {
+    background: var(--plum); color: var(--cream); border: none; padding: 10px 22px; border-radius: 999px;
+    font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+
+  .page-head { position: relative; z-index: 5; max-width: 1300px; margin: 0 auto; padding: 12px 48px 8px; }
+  .page-head h1 { font-size: 36px; font-weight: 600; margin-bottom: 6px; }
+  .page-head p { color: var(--plum-soft); font-weight: 700; font-size: 15px; }
+
+  .grid-section { position: relative; z-index: 5; max-width: 1300px; margin: 0 auto; padding: 24px 48px 100px; }
+  .kingdom-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+
+  .kingdom-card {
+    background: var(--white); border-radius: 22px; overflow: hidden;
+    box-shadow: 0 10px 24px rgba(74,59,99,0.08); transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .kingdom-card:hover { transform: translateY(-4px); box-shadow: 0 16px 30px rgba(74,59,99,0.14); }
+  .thumb {
+    aspect-ratio: 4/3; border: none;
+    background: repeating-linear-gradient(135deg, var(--lavender) 0 16px, var(--sky) 16px 32px);
+    display: flex; align-items: center; justify-content: center; font-size: 32px;
+  }
+  .kingdom-info { padding: 14px 16px 16px; }
+  .kingdom-info h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .kingdom-meta { font-size: 12px; color: var(--plum-soft); font-weight: 700; margin-bottom: 10px; }
+  .btn-play {
+    width: 100%; background: var(--mint-deep); color: var(--plum); border: none; padding: 10px;
+    border-radius: 999px; font-weight: 800; font-size: 13px; cursor: pointer;
+  }
+
+  .no-kingdoms { text-align: center; padding: 60px 20px; color: var(--plum-soft); font-weight: 700; }
+
+  @media (max-width: 1000px) {
+    .kingdom-grid { grid-template-columns: repeat(2, 1fr); }
+    nav, .page-head, .grid-section { padding-left: 24px; padding-right: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+
+<nav>
+  <div class="brand">
+    <svg class="brand-crown" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 28 L4 14 L12 20 L20 8 L28 20 L36 14 L34 28 Z" fill="#FFB98A" stroke="#4A3B63" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="5" y="28" width="30" height="5" rx="2" fill="#FFB98A" stroke="#4A3B63" stroke-width="2"/>
+    </svg>
+    Kingdom
+  </div>
+  <button class="nav-cta" onclick="window.location.href='kingdom-home.html'">Back to home</button>
+</nav>
+
+<div class="page-head">
+  <h1>Explore published kingdoms</h1>
+  <p>Walk through kingdoms other players have published — friends online at the same time will show up live.</p>
+</div>
+
+<div class="grid-section">
+  <div class="kingdom-grid" id="kingdomGrid"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://jswsndzdfplggebjigzd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd3NuZHpkZnBsZ2dlYmppZ3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNjkxNjYsImV4cCI6MjA5ODc0NTE2Nn0.hsDtuylSBhpmikgSGFZ7YVLgl5ubspYiRu6Al0iswvA';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+<script>
+const KingdomAuth = (() => {
+  async function getCurrentUser() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return null;
+    const { data: profile, error } = await supabaseClient
+      .from('profiles').select('*').eq('id', user.id).single();
+    if (error || !profile) return null;
+    return { id: user.id, username: profile.username, displayName: profile.display_name };
+  }
+  async function requireAuth(redirectTo) {
+    const user = await getCurrentUser();
+    if (!user) { window.location.href = redirectTo || 'index.html'; return null; }
+    return user;
+  }
+  return { getCurrentUser, requireAuth };
+})();
+</script>
+<script>
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  (async () => {
+    const currentUser = await KingdomAuth.requireAuth('index.html');
+    if (!currentUser) return;
+
+    const { data: realms, error } = await supabaseClient
+      .from('realms')
+      .select('id, name, blocks, owner_id, updated_at')
+      .eq('is_published', true)
+      .order('updated_at', { ascending: false });
+
+    const grid = document.getElementById('kingdomGrid');
+
+    if (error || !realms || realms.length === 0) {
+      grid.innerHTML = '<div class="no-kingdoms">No published kingdoms yet — be the first! Open the Studio and hit Publish.</div>';
+      return;
+    }
+
+    const ownerIds = [...new Set(realms.map(r => r.owner_id))];
+    const { data: profiles } = await supabaseClient
+      .from('profiles').select('id, display_name').in('id', ownerIds);
+    const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
+
+    realms.forEach(realm => {
+      const blockCount = Array.isArray(realm.blocks) ? realm.blocks.length : 0;
+      const ownerName = profileMap[realm.owner_id]?.display_name || 'Unknown';
+      const card = document.createElement('div');
+      card.className = 'kingdom-card';
+      card.innerHTML = `
+        <div class="thumb">🏰</div>
+        <div class="kingdom-info">
+          <h3>${escapeHtml(realm.name)}</h3>
+          <div class="kingdom-meta">by ${escapeHtml(ownerName)} • ${blockCount} blocks</div>
+          <button class="btn-play">Play now</button>
+        </div>
+      `;
+      card.querySelector('.btn-play').addEventListener('click', () => {
+        window.location.href = 'kingdom-multiplayer.html?realm=' + encodeURIComponent(realm.id);
+      });
+      grid.appendChild(card);
+    });
+  })();
+</script>
+
+</body>
+</html>

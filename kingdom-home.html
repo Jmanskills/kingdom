@@ -242,7 +242,7 @@
   </div>
   <ul class="nav-links">
     <li><a href="kingdom-home.html" class="active">Home</a></li>
-    <li><a href="#">Explore</a></li>
+    <li><a href="kingdom-explore.html">Explore</a></li>
     <li><a href="kingdom-create.html">Create</a></li>
   </ul>
   <div class="nav-right">
@@ -281,16 +281,12 @@
   <div class="panel">
     <h2>What's happening</h2>
     <div class="quick-actions">
-      <button class="quick-btn"><span class="icon">🏰</span>Visit kingdom</button>
-      <button class="quick-btn"><span class="icon">🧑‍🎨</span>Edit character</button>
-      <button class="quick-btn"><span class="icon">🧭</span>Explore realms</button>
+      <button class="quick-btn" id="inviteFriendQuickBtn"><span class="icon">➕</span>Invite a friend</button>
+      <button class="quick-btn" onclick="window.location.href='kingdom-messages.html'"><span class="icon">💬</span>Messages</button>
+      <button class="quick-btn" id="comingSoonBtn" style="opacity:0.6; cursor:default;"><span class="icon">🚧</span>Coming soon</button>
     </div>
 
-    <div style="text-align:center; padding:40px 10px; color:var(--plum-soft);">
-      <div style="font-size:38px; margin-bottom:10px;">🌱</div>
-      <div style="font-weight:800; margin-bottom:4px;">Nothing here yet</div>
-      <div style="font-size:13px;">Add some friends or visit a realm — activity will start showing up here.</div>
-    </div>
+    <div id="activityFeed"></div>
   </div>
 
   <!-- ---------- right: friends ---------- -->
@@ -557,7 +553,7 @@ const KingdomFriends = (() => {
   async function getFriends(myId) {
     const { data: friendships, error } = await supabaseClient
       .from('friendships')
-      .select('id, user_a, user_b')
+      .select('id, user_a, user_b, created_at')
       .or(`user_a.eq.${myId},user_b.eq.${myId}`);
 
     if (error || !friendships || friendships.length === 0) return [];
@@ -575,7 +571,8 @@ const KingdomFriends = (() => {
         friendshipId: f.id,
         id: otherId,
         username: profileMap[otherId]?.username || 'unknown',
-        displayName: profileMap[otherId]?.display_name || 'Unknown'
+        displayName: profileMap[otherId]?.display_name || 'Unknown',
+        friendsSince: f.created_at
       };
     });
   }
@@ -697,8 +694,12 @@ const KingdomRealms = (() => {
             <div class="friend-name">${escapeHtml(friend.displayName)}</div>
             <div class="friend-status">@${escapeHtml(friend.username)}</div>
           </div>
+          <button class="friend-action" title="Message">💬</button>
           <button class="btn-remove-friend" title="Remove friend">✕</button>
         `;
+        row.querySelector('.friend-action').addEventListener('click', () => {
+          window.location.href = 'kingdom-messages.html?with=' + encodeURIComponent(friend.id);
+        });
         row.querySelector('.btn-remove-friend').addEventListener('click', async () => {
           await KingdomFriends.removeFriend(friend.friendshipId);
           renderFriends();
@@ -719,6 +720,19 @@ const KingdomRealms = (() => {
     addFriendPanel.style.display = isOpen ? 'none' : 'block';
     addFriendToggle.textContent = isOpen ? '+ Add friend' : '– Close search';
     if (!isOpen) friendSearchInput.focus();
+  });
+
+  document.getElementById('inviteFriendQuickBtn').addEventListener('click', () => {
+    document.getElementById('addFriendPanel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (addFriendPanel.style.display !== 'block') {
+      addFriendPanel.style.display = 'block';
+      addFriendToggle.textContent = '– Close search';
+    }
+    setTimeout(() => friendSearchInput.focus(), 400);
+  });
+
+  document.getElementById('comingSoonBtn').addEventListener('click', () => {
+    alert("This feature is coming soon — stay tuned!");
   });
 
   friendSearchInput.addEventListener('input', async () => {
@@ -756,6 +770,63 @@ const KingdomRealms = (() => {
   });
 
   // ---------- realm: render ----------
+  // ---------- real activity feed ----------
+  async function renderActivityFeed() {
+    if (!currentUser) return;
+    const feedEl = document.getElementById('activityFeed');
+    const friends = await KingdomFriends.getFriends(currentUser.id);
+
+    const events = [];
+
+    friends.forEach(f => {
+      events.push({
+        time: f.friendsSince,
+        html: `<strong>${escapeHtml(f.displayName)}</strong> became your friend`
+      });
+    });
+
+    if (friends.length > 0) {
+      const friendIds = friends.map(f => f.id);
+      const { data: friendRealms } = await supabaseClient
+        .from('realms')
+        .select('name, owner_id, created_at')
+        .in('owner_id', friendIds)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      (friendRealms || []).forEach(realm => {
+        const owner = friends.find(f => f.id === realm.owner_id);
+        events.push({
+          time: realm.created_at,
+          html: `<strong>${escapeHtml(owner ? owner.displayName : 'A friend')}</strong> created a new kingdom: <strong>${escapeHtml(realm.name)}</strong>`
+        });
+      });
+    }
+
+    events.sort((a, b) => new Date(b.time) - new Date(a.time));
+    const topEvents = events.slice(0, 8);
+
+    if (topEvents.length === 0) {
+      feedEl.innerHTML = `
+        <div style="text-align:center; padding:40px 10px; color:var(--plum-soft);">
+          <div style="font-size:38px; margin-bottom:10px;">🌱</div>
+          <div style="font-weight:800; margin-bottom:4px;">Nothing here yet</div>
+          <div style="font-size:13px;">Add some friends — activity will start showing up here.</div>
+        </div>`;
+      return;
+    }
+
+    feedEl.innerHTML = topEvents.map(e => `
+      <div class="feed-item">
+        <div class="feed-avatar">✨</div>
+        <div>
+          <div class="feed-text">${e.html}</div>
+          <div class="feed-time">${new Date(e.time).toLocaleDateString()}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
   async function renderRealm() {
     if (!currentUser) return;
     const realms = await KingdomRealms.getMyRealms(currentUser.id);
@@ -817,6 +888,7 @@ const KingdomRealms = (() => {
 
     renderFriends();
     renderRealm();
+    renderActivityFeed();
   })();
 </script>
 

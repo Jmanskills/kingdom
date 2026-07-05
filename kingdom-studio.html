@@ -142,6 +142,7 @@
     <button class="btn btn-ghost" id="newKingdomBtn">+ New</button>
     <span id="statusMsg"></span>
     <button class="btn btn-ghost" onclick="window.location.href='kingdom-home.html'">Back to home</button>
+    <button class="btn btn-ghost" id="publishBtn">Publish</button>
     <button class="btn btn-primary" id="saveBtn">Save build</button>
   </div>
 </div>
@@ -259,7 +260,16 @@ const KingdomRealms = (() => {
     if (error) return { ok: false, error: error.message };
     return { ok: true };
   }
-  return { getMyRealms, getRealmById, createRealm, saveRealm };
+  async function setPublished(realmId, isPublished) {
+    const { error } = await supabaseClient
+      .from('realms')
+      .update({ is_published: isPublished })
+      .eq('id', realmId);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  }
+
+  return { getMyRealms, getRealmById, createRealm, saveRealm, setPublished };
 })();
 </script>
 
@@ -819,7 +829,35 @@ const KingdomRealms = (() => {
       }
     }
     updateBlockCount();
+    updatePublishButton();
   }
+
+  function updatePublishButton() {
+    const btn = document.getElementById('publishBtn');
+    if (!myRealm) return;
+    if (myRealm.is_published) {
+      btn.textContent = '✓ Published';
+      btn.style.background = 'var(--mint-deep)';
+    } else {
+      btn.textContent = 'Publish';
+      btn.style.background = 'var(--white)';
+    }
+  }
+
+  document.getElementById('publishBtn').addEventListener('click', async () => {
+    if (!myRealm) return;
+    const newState = !myRealm.is_published;
+    const result = await KingdomRealms.setPublished(myRealm.id, newState);
+    if (result.ok) {
+      myRealm.is_published = newState;
+      updatePublishButton();
+      const status = document.getElementById('statusMsg');
+      status.textContent = newState ? 'Published! Friends can now visit.' : 'Unpublished.';
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    } else {
+      alert('Could not update publish status: ' + result.error);
+    }
+  });
 
   document.getElementById('saveBtn').addEventListener('click', async () => {
     if (!myRealm) return;
