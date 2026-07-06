@@ -453,14 +453,14 @@ const KingdomAuth = (() => {
   }
 
   // ---------- multiplayer: other players via Supabase Realtime ----------
-  const otherPlayers = new Map(); // userId -> { mesh, nameTagEl }
+  const otherPlayers = new Map(); // userId -> { group, nameTag, name, mixer, walkAction, capsuleMesh }
   let realtimeChannel = null;
 
-  function createOtherPlayerMesh(displayName) {
+  function createOtherPlayerMesh(userId, displayName) {
     const group = new THREE.Group();
-    const mesh = new THREE.Mesh(playerBodyGeo, new THREE.MeshStandardMaterial({ color: 0x8FCCF5 }));
-    mesh.position.y = 0.8;
-    group.add(mesh);
+    const capsuleMesh = new THREE.Mesh(playerBodyGeo, new THREE.MeshStandardMaterial({ color: 0x8FCCF5 }));
+    capsuleMesh.position.y = 0.8;
+    group.add(capsuleMesh);
     scene.add(group);
 
     const nameTag = document.createElement('div');
@@ -468,7 +468,107 @@ const KingdomAuth = (() => {
     nameTag.textContent = displayName;
     document.body.appendChild(nameTag);
 
-    return { group, nameTag };
+    const entry = { group, nameTag, name: displayName, mixer: null, walkAction: null, capsuleMesh };
+    loadRemotePlayerAvatar(userId, entry);
+    return entry;
+  }
+
+  // Loads the same Walking.fbx model (plus that specific player's own
+  // equipped hat/back/shirt) for a remote player, replacing their capsule
+  async function loadRemotePlayerAvatar(userId, entry) {
+    if (typeof fflate === 'undefined' || typeof THREE.FBXLoader === 'undefined') return;
+
+    const fbx = await new Promise((resolve) => {
+      new THREE.FBXLoader().load('Walking.fbx', resolve, undefined, () => resolve(null));
+    });
+    if (!fbx) return; // keep the capsule if loading fails
+
+    entry.group.remove(entry.capsuleMesh);
+    const scale = typeof realm.character_scale === 'number' ? realm.character_scale : 0.0033;
+    fbx.scale.set(scale, scale, scale);
+    entry.group.add(fbx);
+
+    entry.mixer = new THREE.AnimationMixer(fbx);
+    if (fbx.animations && fbx.animations.length > 0) {
+      const clip = fbx.animations[0];
+      clip.tracks.forEach(track => {
+        if (track instanceof THREE.VectorKeyframeTrack && track.name.toLowerCase().endsWith('.position')) {
+          const values = track.values;
+          const baseX = values[0];
+          const baseZ = values[2];
+          for (let i = 0; i < values.length; i += 3) {
+            values[i] = baseX;
+            values[i + 2] = baseZ;
+          }
+        }
+      });
+      entry.walkAction = entry.mixer.clipAction(clip);
+      entry.walkAction.play();
+      entry.walkAction.paused = true;
+    }
+
+    // Load THIS player's own equipped items (not our local user's)
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('equipped_hat, equipped_back, equipped_shirt')
+      .eq('id', userId)
+      .single();
+    if (!profile) return;
+
+    const box = new THREE.Box3().setFromObject(fbx);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+
+    if (profile.equipped_hat) {
+      const { data: item } = await supabaseClient.from('shop_items').select('asset_url').eq('id', profile.equipped_hat).maybeSingle();
+      if (item && item.asset_url) {
+        const hatObj = await loadAccessoryModelShared(item.asset_url);
+        if (hatObj) { hatObj.position.set(center.x, box.max.y, center.z); fbx.add(hatObj); }
+      }
+    }
+    if (profile.equipped_back) {
+      const { data: item } = await supabaseClient.from('shop_items').select('asset_url').eq('id', profile.equipped_back).maybeSingle();
+      if (item && item.asset_url) {
+        const backObj = await loadAccessoryModelShared(item.asset_url);
+        if (backObj) { backObj.position.set(center.x, center.y, box.min.z); fbx.add(backObj); }
+      }
+    }
+    if (profile.equipped_shirt) {
+      const { data: item } = await supabaseClient.from('shop_items').select('color, texture_url').eq('id', profile.equipped_shirt).maybeSingle();
+      if (item && item.texture_url) {
+        const texture = await new Promise((resolve) => {
+          new THREE.TextureLoader().load(item.texture_url, resolve, undefined, () => resolve(null));
+        });
+        if (texture) {
+          texture.encoding = THREE.sRGBEncoding;
+          fbx.traverse(node => {
+            if (node.isMesh && node.material) {
+              const mats = Array.isArray(node.material) ? node.material : [node.material];
+              mats.forEach(m => { m.map = texture; m.color.set(0xffffff); m.needsUpdate = true; });
+            }
+          });
+        }
+      } else if (item && item.color) {
+        const tint = new THREE.Color(item.color);
+        fbx.traverse(node => {
+          if (node.isMesh && node.material) {
+            const mats = Array.isArray(node.material) ? node.material : [node.material];
+            mats.forEach(m => { if (m.color) m.color.copy(tint); });
+          }
+        });
+      }
+    }
+  }
+
+  function loadAccessoryModelShared(url) {
+    return new Promise((resolve) => {
+      const isGlb = url.toLowerCase().includes('.glb') || url.toLowerCase().includes('.gltf');
+      if (isGlb) {
+        new THREE.GLTFLoader().load(url, (gltf) => resolve(gltf.scene), undefined, () => resolve(null));
+      } else {
+        new THREE.FBXLoader().load(url, (obj) => resolve(obj), undefined, () => resolve(null));
+      }
+    });
   }
 
   function removeOtherPlayer(userId) {
@@ -492,18 +592,18 @@ const KingdomAuth = (() => {
     });
 
     realtimeChannel.on('broadcast', { event: 'move' }, (payload) => {
-      const { userId, x, y, z, ry, displayName } = payload.payload;
+      const { userId, x, y, z, ry, displayName, moving } = payload.payload;
       if (userId === currentUser.id) return;
 
       let entry = otherPlayers.get(userId);
       if (!entry) {
-        const created = createOtherPlayerMesh(displayName);
-        entry = { group: created.group, nameTag: created.nameTag, name: displayName };
+        entry = createOtherPlayerMesh(userId, displayName);
         otherPlayers.set(userId, entry);
         updatePlayersOnlineList();
       }
       entry.group.position.set(x, y, z);
       entry.group.rotation.y = ry;
+      if (entry.walkAction) entry.walkAction.paused = !moving;
     });
 
     realtimeChannel.on('presence', { event: 'leave' }, ({ key }) => {
@@ -520,6 +620,8 @@ const KingdomAuth = (() => {
     // to keep network traffic reasonable
     setInterval(() => {
       if (!realtimeChannel) return;
+      const moving = keys['KeyW'] || keys['KeyA'] || keys['KeyS'] || keys['KeyD'] ||
+                     keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'];
       realtimeChannel.send({
         type: 'broadcast',
         event: 'move',
@@ -527,7 +629,8 @@ const KingdomAuth = (() => {
           userId: currentUser.id,
           displayName: currentUser.displayName,
           x: player.position.x, y: player.position.y, z: player.position.z,
-          ry: player.rotation.y
+          ry: player.rotation.y,
+          moving: !!moving
         }
       });
     }, 100);
@@ -564,6 +667,7 @@ const KingdomAuth = (() => {
 
     updatePlayer(dt);
     if (mixer) mixer.update(dt);
+    otherPlayers.forEach(entry => { if (entry.mixer) entry.mixer.update(dt); });
     updateNameTags();
     controls.update();
     renderer.render(scene, camera);

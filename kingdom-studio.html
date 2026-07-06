@@ -66,6 +66,23 @@
   }
   .swatch:hover { transform: scale(1.1); }
   .swatch.active { border-color: var(--plum); }
+  .swatch { position: relative; }
+  .key-label {
+    position: absolute; bottom: -6px; right: -6px; background: var(--white); color: var(--plum);
+    font-size: 10px; font-weight: 800; width: 16px; height: 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(74,59,99,0.3);
+  }
+  #rebindToggle {
+    background: var(--cream); border: none; width: 34px; height: 34px; border-radius: 10px;
+    font-size: 15px; cursor: pointer; margin-left: 6px;
+  }
+  #rebindToggle.active { background: var(--peach-deep); }
+  #rebindHint {
+    position: fixed; bottom: 78px; left: 50%; transform: translateX(-50%); z-index: 20;
+    background: var(--peach-deep); color: var(--plum); padding: 6px 16px; border-radius: 999px;
+    font-weight: 800; font-size: 12px;
+  }
+  .swatch.awaiting-key { outline: 3px solid var(--peach-deep); outline-offset: 2px; }
 
   #helpBox {
     position: fixed; top: 130px; left: 24px; z-index: 20;
@@ -162,6 +179,7 @@
 <div id="playBanner">▶ WASD to move, Space to jump, drag to look around</div>
 
 <div id="blockCount">0 blocks</div>
+<div id="collaboratorsBox" style="display:none; position:fixed; top:112px; right:24px; z-index:20; background:rgba(255,255,255,0.9); backdrop-filter:blur(6px); padding:8px 16px; border-radius:999px; font-size:12px; font-weight:800; color:var(--plum); box-shadow:0 4px 16px rgba(74,59,99,0.1); max-width:220px;"></div>
 
 <div id="canvasWrap"></div>
 
@@ -172,15 +190,17 @@
 </div>
 
 <div id="palette">
-  <div class="swatch active" style="background:#8FE0B8" data-color="#8FE0B8"></div>
-  <div class="swatch" style="background:#C9A6FF" data-color="#C9A6FF"></div>
-  <div class="swatch" style="background:#FFB98A" data-color="#FFB98A"></div>
-  <div class="swatch" style="background:#8FCCF5" data-color="#8FCCF5"></div>
-  <div class="swatch" style="background:#FF9FC4" data-color="#FF9FC4"></div>
-  <div class="swatch" style="background:#A0A0A0" data-color="#A0A0A0"></div>
-  <div class="swatch" style="background:#7A5230" data-color="#7A5230"></div>
-  <div class="swatch" style="background:#4A3B63" data-color="#4A3B63"></div>
+  <div class="swatch active" style="background:#8FE0B8" data-color="#8FE0B8"><span class="key-label">1</span></div>
+  <div class="swatch" style="background:#C9A6FF" data-color="#C9A6FF"><span class="key-label">2</span></div>
+  <div class="swatch" style="background:#FFB98A" data-color="#FFB98A"><span class="key-label">3</span></div>
+  <div class="swatch" style="background:#8FCCF5" data-color="#8FCCF5"><span class="key-label">4</span></div>
+  <div class="swatch" style="background:#FF9FC4" data-color="#FF9FC4"><span class="key-label">5</span></div>
+  <div class="swatch" style="background:#A0A0A0" data-color="#A0A0A0"><span class="key-label">6</span></div>
+  <div class="swatch" style="background:#7A5230" data-color="#7A5230"><span class="key-label">7</span></div>
+  <div class="swatch" style="background:#4A3B63" data-color="#4A3B63"><span class="key-label">8</span></div>
+  <button id="rebindToggle" title="Customize keybinds">⌨️</button>
 </div>
+<div id="rebindHint" style="display:none;">Click a color, then press the key you want for it</div>
 
 <div id="scriptPanel">
   <button class="close-btn" id="closeScriptPanel">✕</button>
@@ -364,9 +384,97 @@ const KingdomRealms = (() => {
     document.getElementById('blockCount').textContent = blockMap.size + ' block' + (blockMap.size === 1 ? '' : 's');
   }
 
+  // ---------- real-time collaborative building ----------
+  let buildChannel = null;
+  const collaborators = new Map(); // userId -> displayName
+
+  function updateCollaboratorsDisplay() {
+    const box = document.getElementById('collaboratorsBox');
+    if (!box) return;
+    if (collaborators.size === 0) {
+      box.style.display = 'none';
+      return;
+    }
+    box.style.display = 'block';
+    box.textContent = '👥 Building with: ' + Array.from(collaborators.values()).join(', ');
+  }
+
+  function teardownBuildChannel() {
+    if (buildChannel) {
+      supabaseClient.removeChannel(buildChannel);
+      buildChannel = null;
+    }
+    collaborators.clear();
+    updateCollaboratorsDisplay();
+  }
+
+  function setupBuildChannel(realmId) {
+    teardownBuildChannel();
+
+    buildChannel = supabaseClient.channel('kingdom-build-' + realmId, {
+      config: { presence: { key: currentUser.id } }
+    });
+
+    buildChannel.on('broadcast', { event: 'block_add' }, (payload) => {
+      const b = payload.payload;
+      addBlock(b.x, b.y, b.z, b.color, b.behavior, false);
+    });
+
+    buildChannel.on('broadcast', { event: 'block_remove' }, (payload) => {
+      const b = payload.payload;
+      removeBlock(b.x, b.y, b.z);
+    });
+
+    buildChannel.on('broadcast', { event: 'block_behavior' }, (payload) => {
+      const b = payload.payload;
+      const mesh = blockMap.get(keyFor(b.x, b.y, b.z));
+      if (mesh) mesh.userData.behavior = b.behavior;
+    });
+
+    buildChannel.on('presence', { event: 'sync' }, () => {
+      const state = buildChannel.presenceState();
+      collaborators.clear();
+      Object.keys(state).forEach(userId => {
+        if (userId === currentUser.id) return;
+        const meta = state[userId][0];
+        if (meta) collaborators.set(userId, meta.displayName);
+      });
+      updateCollaboratorsDisplay();
+    });
+
+    buildChannel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await buildChannel.track({ displayName: currentUser.displayName });
+      }
+    });
+  }
+
+  // Local user actions go through these — they update the scene AND tell
+  // anyone else currently building in this same kingdom
+  function placeBlockLocal(x, y, z, color, behavior) {
+    addBlock(x, y, z, color, behavior, false);
+    if (buildChannel) {
+      buildChannel.send({ type: 'broadcast', event: 'block_add', payload: { x, y, z, color, behavior } });
+    }
+  }
+
+  function removeBlockLocal(x, y, z) {
+    removeBlock(x, y, z);
+    if (buildChannel) {
+      buildChannel.send({ type: 'broadcast', event: 'block_remove', payload: { x, y, z } });
+    }
+  }
+
+  function broadcastBehaviorChange(x, y, z, behavior) {
+    if (buildChannel) {
+      buildChannel.send({ type: 'broadcast', event: 'block_behavior', payload: { x, y, z, behavior } });
+    }
+  }
+
   // ---------- raycasting (build & script tools) ----------
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
+  let lastMouseEvent = null;
 
   function getIntersects(event) {
     const rect = renderer.domElement.getBoundingClientRect();
@@ -379,33 +487,48 @@ const KingdomRealms = (() => {
 
   let didDrag = false;
   renderer.domElement.addEventListener('pointerdown', () => { didDrag = false; });
-  renderer.domElement.addEventListener('pointermove', (e) => { if (e.buttons !== 0) didDrag = true; });
+  renderer.domElement.addEventListener('pointermove', (e) => {
+    if (e.buttons !== 0) didDrag = true;
+    lastMouseEvent = e;
+  });
+
+  // Places a block using whatever the mouse is currently pointing at —
+  // shared by both clicking and keybind placement
+  function placeBlockAtCurrentMouse() {
+    if (!lastMouseEvent) return;
+    const hits = getIntersects(lastMouseEvent);
+    if (hits.length === 0) return;
+    const hit = hits[0];
+
+    const normal = hit.face.normal.clone();
+    normal.transformDirection(hit.object.matrixWorld);
+    let gx, gy, gz;
+    if (hit.object.userData.isGround) {
+      gx = Math.floor(hit.point.x / GRID_SIZE);
+      gy = 0;
+      gz = Math.floor(hit.point.z / GRID_SIZE);
+    } else {
+      const b = hit.object.userData;
+      gx = b.gx + Math.round(normal.x);
+      gy = b.gy + Math.round(normal.y);
+      gz = b.gz + Math.round(normal.z);
+    }
+    if (gy < 0) return;
+
+    placeBlockLocal(gx, gy, gz, currentColor, { type: 'none' });
+  }
 
   renderer.domElement.addEventListener('click', (e) => {
     if (didDrag) return;
     if (currentTool === 'play') return; // play mode uses walking, not clicking
-    const hits = getIntersects(e);
-    if (hits.length === 0) return;
-    const hit = hits[0];
+    lastMouseEvent = e;
 
     if (currentTool === 'build') {
-      const normal = hit.face.normal.clone();
-      normal.transformDirection(hit.object.matrixWorld);
-      let gx, gy, gz;
-      if (hit.object.userData.isGround) {
-        gx = Math.floor(hit.point.x / GRID_SIZE);
-        gy = 0;
-        gz = Math.floor(hit.point.z / GRID_SIZE);
-      } else {
-        const b = hit.object.userData;
-        gx = b.gx + Math.round(normal.x);
-        gy = b.gy + Math.round(normal.y);
-        gz = b.gz + Math.round(normal.z);
-      }
-      if (gy < 0) return;
-      addBlock(gx, gy, gz, currentColor, { type: 'none' });
-
+      placeBlockAtCurrentMouse();
     } else if (currentTool === 'script') {
+      const hits = getIntersects(e);
+      if (hits.length === 0) return;
+      const hit = hits[0];
       if (!hit.object.userData.isBlock) return;
       openScriptPanel(hit.object);
     }
@@ -418,7 +541,7 @@ const KingdomRealms = (() => {
     const blockHit = hits.find(h => h.object.userData.isBlock);
     if (!blockHit) return;
     const b = blockHit.object.userData;
-    removeBlock(b.gx, b.gy, b.gz);
+    removeBlockLocal(b.gx, b.gy, b.gz);
   });
 
   // ---------- player (placeholder capsule — swap for your model, see loadPlayerModel below) ----------
@@ -729,6 +852,7 @@ const KingdomRealms = (() => {
       }
     }
     mesh.userData.behavior = behavior;
+    broadcastBehaviorChange(mesh.userData.gx, mesh.userData.gy, mesh.userData.gz, behavior);
     scriptStatus.textContent = 'Applied ✓';
     scriptStatus.className = 'success';
   });
@@ -764,13 +888,85 @@ const KingdomRealms = (() => {
     }
   }
 
-  // ---------- palette ----------
-  document.querySelectorAll('.swatch').forEach(sw => {
-    sw.addEventListener('click', () => {
-      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-      sw.classList.add('active');
-      currentColor = sw.dataset.color;
+  // ---------- palette + keybinds ----------
+  const KEYBIND_STORAGE_KEY = 'kingdom_studio_keybinds';
+  const defaultKeybinds = ['1', '2', '3', '4', '5', '6', '7', '8'];
+  let keybinds = [...defaultKeybinds];
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEYBIND_STORAGE_KEY));
+    if (Array.isArray(saved) && saved.length === 8) keybinds = saved;
+  } catch { /* use defaults */ }
+
+  const swatchEls = Array.from(document.querySelectorAll('.swatch'));
+  let rebindMode = false;
+  let awaitingIndex = null;
+
+  function refreshKeyLabels() {
+    swatchEls.forEach((sw, i) => {
+      const label = sw.querySelector('.key-label');
+      if (label) label.textContent = keybinds[i].toUpperCase();
     });
+  }
+  refreshKeyLabels();
+
+  function selectSwatch(sw) {
+    swatchEls.forEach(s => s.classList.remove('active'));
+    sw.classList.add('active');
+    currentColor = sw.dataset.color;
+  }
+
+  swatchEls.forEach((sw, index) => {
+    sw.addEventListener('click', () => {
+      if (rebindMode) {
+        // Enter "waiting for a key" state for this swatch
+        swatchEls.forEach(s => s.classList.remove('awaiting-key'));
+        sw.classList.add('awaiting-key');
+        awaitingIndex = index;
+        return;
+      }
+      selectSwatch(sw);
+    });
+  });
+
+  document.getElementById('rebindToggle').addEventListener('click', () => {
+    rebindMode = !rebindMode;
+    document.getElementById('rebindToggle').classList.toggle('active', rebindMode);
+    document.getElementById('rebindHint').style.display = rebindMode ? 'block' : 'none';
+    if (!rebindMode) {
+      swatchEls.forEach(s => s.classList.remove('awaiting-key'));
+      awaitingIndex = null;
+    }
+  });
+
+  // Number-key quick select + rebind capture (ignored while typing in a text field)
+  window.addEventListener('keydown', (e) => {
+    const tag = document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+    if (rebindMode && awaitingIndex !== null) {
+      const key = e.key.toLowerCase();
+      if (key === 'escape') {
+        swatchEls[awaitingIndex].classList.remove('awaiting-key');
+        awaitingIndex = null;
+        return;
+      }
+      if (key.length !== 1) return; // ignore Shift, Ctrl, arrow keys, etc.
+
+      keybinds[awaitingIndex] = key;
+      localStorage.setItem(KEYBIND_STORAGE_KEY, JSON.stringify(keybinds));
+      refreshKeyLabels();
+      swatchEls[awaitingIndex].classList.remove('awaiting-key');
+      awaitingIndex = null;
+      return;
+    }
+
+    if (currentTool !== 'build') return;
+    const idx = keybinds.indexOf(e.key.toLowerCase());
+    if (idx !== -1) {
+      selectSwatch(swatchEls[idx]);
+      placeBlockAtCurrentMouse();
+    }
   });
 
   // ---------- resize ----------
@@ -899,6 +1095,7 @@ const KingdomRealms = (() => {
 
   function loadRealmIntoScene(realm) {
     clearAllBlocks();
+    setupBuildChannel(realm.id);
     currentCharacterScale = typeof realm.character_scale === 'number' ? realm.character_scale : 0.0033;
 
     if (window.loadedCharacterModel) {
@@ -951,6 +1148,10 @@ const KingdomRealms = (() => {
 
   document.getElementById('saveBtn').addEventListener('click', async () => {
     if (!myRealm) return;
+    if (isGuestBuilder) {
+      alert("You're building as a guest — only the kingdom's owner can save. Keep building, and ask them to hit Save!");
+      return;
+    }
     const status = document.getElementById('statusMsg');
     status.textContent = 'Saving...';
     const blocks = serializeBlocks();
@@ -1001,6 +1202,8 @@ const KingdomRealms = (() => {
   }
 
   // ---------- init ----------
+  let isGuestBuilder = false; // true when viewing/building in someone else's kingdom
+
   (async () => {
     currentUser = await KingdomAuth.requireAuth('index.html');
     if (!currentUser) return;
@@ -1012,15 +1215,69 @@ const KingdomRealms = (() => {
       if (realm) myRealms = [realm];
     }
 
-    // If a specific kingdom was linked to (e.g. ?realm=abc123), open that one
     const params = new URLSearchParams(window.location.search);
     const requestedId = params.get('realm');
-    myRealm = (requestedId && myRealms.find(r => r.id === requestedId)) || myRealms[0];
 
+    if (requestedId) {
+      const ownedMatch = myRealms.find(r => r.id === requestedId);
+      if (ownedMatch) {
+        myRealm = ownedMatch;
+      } else {
+        // Not one of your own kingdoms — try loading it as a guest builder
+        const otherRealm = await KingdomRealms.getRealmById(requestedId);
+        if (otherRealm) {
+          myRealm = otherRealm;
+          isGuestBuilder = true;
+        } else {
+          myRealm = myRealms[0];
+        }
+      }
+    } else {
+      myRealm = myRealms[0];
+    }
+
+    setupGuestModeUI();
     renderKingdomPicker();
     loadRealmIntoScene(myRealm);
     updateUrlForRealm(myRealm.id);
   })();
+
+  function setupGuestModeUI() {
+    const picker = document.getElementById('kingdomPicker');
+    const newBtn = document.getElementById('newKingdomBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const publishBtn = document.getElementById('publishBtn');
+
+    if (isGuestBuilder) {
+      picker.style.display = 'none';
+      newBtn.style.display = 'none';
+      publishBtn.style.display = 'none';
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Only owner can save';
+      saveBtn.title = "You're building here as a guest — only the kingdom's owner can save changes.";
+
+      const banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:20; background:var(--lavender-deep); color:white; padding:8px 20px; border-radius:999px; font-weight:800; font-size:12px;';
+      banner.textContent = "👋 You're building as a guest in someone else's kingdom";
+      document.body.appendChild(banner);
+    } else {
+      // Add an invite button next to Save build, for the owner to share access
+      const inviteBtn = document.createElement('button');
+      inviteBtn.className = 'btn btn-ghost';
+      inviteBtn.textContent = '🔗 Invite';
+      inviteBtn.title = 'Copy a link so a friend can build with you here';
+      inviteBtn.addEventListener('click', () => {
+        const url = window.location.origin + window.location.pathname + '?realm=' + encodeURIComponent(myRealm.id);
+        navigator.clipboard.writeText(url).then(() => {
+          inviteBtn.textContent = '✓ Link copied!';
+          setTimeout(() => { inviteBtn.textContent = '🔗 Invite'; }, 2000);
+        }).catch(() => {
+          prompt('Copy this link to invite someone:', url);
+        });
+      });
+      saveBtn.parentElement.insertBefore(inviteBtn, saveBtn);
+    }
+  }
 </script>
 
 </body>
